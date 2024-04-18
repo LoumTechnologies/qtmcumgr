@@ -13,7 +13,13 @@ find_package(Qt6 COMPONENTS
         Bluetooth
         REQUIRED)
 
-add_executable(qtmcumgr main.cpp)
+add_executable(qtmcumgr main.cpp
+        Discoverer.cpp
+        Discoverer.h
+        IoThread.cpp
+        IoThread.h
+        IoThreadManager.cpp
+        IoThreadManager.h)
 target_link_libraries(qtmcumgr
         Qt::Core
         Qt::Bluetooth

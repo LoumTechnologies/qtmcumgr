@@ -1,19 +1,12 @@
 #include <QCoreApplication>
-#include <QDebug>
-#include <print>
-#include <iostream>
-#include <QBluetoothDeviceDiscoveryAgent>
+#include "Discoverer.h"
+#include "IoThreadManager.h"
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
-    while(true) {
-        std::print("Please enter a command: ");
-        std::string input_line;
-        if (!getline(std::cin, input_line)) {
-            break;
-        }
-
-        std::print("You entered: {0}\n", input_line);
-    }
+    IoThreadManager instance;
+    instance.start();
+    Discoverer discoverer;
+    discoverer.start();
     return QCoreApplication::exec();
 }
