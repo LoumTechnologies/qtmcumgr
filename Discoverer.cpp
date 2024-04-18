@@ -6,6 +6,7 @@
 //#include "Discoverer.moc"
 #include <QIODevice>
 #include <print>
+#include <iostream>
 
 Discoverer::Discoverer()
 {
@@ -25,10 +26,20 @@ Discoverer::~Discoverer()
 
 void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
 {
-    std::print("Found device: {0} {1}\n", info.address().toString().toStdString(), info.name().toStdString());
+    std::print(
+        "{{ \"eventType\": \"DeviceDiscovered\", \"address\": \"{0}\", \"name\": \"{1}\" }}\n",
+        info.address().toString().toStdString(),
+        info.name().toStdString()
+    );
+    std::flush(std::cout);
 }
 
 void Discoverer::start()
 {
     discoveryAgent->start();
+}
+
+void Discoverer::finished() {
+    std::print("{{ \"eventType\": \"DeviceScanningEnded\" }}\n");
+    std::flush(std::cout);
 }

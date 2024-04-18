@@ -19,8 +19,6 @@ public:
 
 public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
-
-signals:
     void finished();
 
 private:

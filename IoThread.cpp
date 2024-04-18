@@ -15,17 +15,15 @@ IoThread::~IoThread()
 {
 }
 
-
 void IoThread::process()
 {
     while(true) {
-        std::print("Please enter a command: ");
         std::string input_line;
         if (!getline(std::cin, input_line)) {
             break;
         }
 
-        std::print("You entered: {0}\n", input_line);
+        std::print("{{ \"eventType\": \"Response\", \"request\": \"{0}\" }}\n", input_line);
     }
 
     emit finished();
