@@ -19,7 +19,39 @@ add_executable(qtmcumgr main.cpp
         IoThread.cpp
         IoThread.h
         IoThreadManager.cpp
-        IoThreadManager.h)
+        IoThreadManager.h
+        crc16.cpp
+        crc16.h
+        smp_group_stat_mgmt.cpp
+        smp_group_stat_mgmt.h
+        smp_group_zephyr_mgmt.cpp
+        smp_group_zephyr_mgmt.h
+        smp_bluetooth.cpp
+        smp_bluetooth.h
+        smp_error.cpp
+        smp_error.h
+        smp_group.h
+        smp_group_array.h
+        smp_group_fs_mgmt.cpp
+        smp_group_fs_mgmt.h
+        smp_group_img_mgmt.cpp
+        smp_group_img_mgmt.h
+        smp_group_os_mgmt.cpp
+        smp_group_os_mgmt.h
+        smp_group_settings_mgmt.cpp
+        smp_group_settings_mgmt.h
+        smp_group_shell_mgmt.cpp
+        smp_group_shell_mgmt.h
+        smp_processor.cpp
+        smp_processor.h
+        smp_transport.h
+        smp_uart.cpp
+        smp_uart.h
+        smp_udp.cpp
+        smp_udp.h
+        smp_message.cpp
+        smp_message.h
+)
 target_link_libraries(qtmcumgr
         Qt::Core
         Qt::Bluetooth
