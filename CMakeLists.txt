@@ -6,16 +6,20 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH "C:/Qt-aqt/6.7.0/msvc2019_64")
+set(CMAKE_PREFIX_PATH "C:/Qt/6.7.0/msvc2019_64/lib/cmake")
 
 find_package(Qt6 COMPONENTS
         Core
+        Bluetooth
         REQUIRED)
 
 add_executable(qtmcumgr main.cpp)
 target_link_libraries(qtmcumgr
         Qt::Core
+        Qt::Bluetooth
 )
+
+find_package(Qt6 REQUIRED COMPONENTS Bluetooth)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)

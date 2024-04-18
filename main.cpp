@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <print>
 #include <iostream>
-
+#include <QBluetoothDeviceDiscoveryAgent>
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
