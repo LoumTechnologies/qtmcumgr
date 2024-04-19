@@ -7,8 +7,9 @@
 #include <print>
 #include <iostream>
 
-IoThread::IoThread()
+IoThread::IoThread(Discoverer *discoverer)
 {
+    this->discoverer = discoverer;
 }
 
 IoThread::~IoThread()
@@ -22,6 +23,8 @@ void IoThread::process()
         if (!getline(std::cin, input_line)) {
             break;
         }
+
+        discoverer->process(input_line);
 
         std::print("{{ \"eventType\": \"Response\", \"request\": \"{0}\" }}\n", input_line);
     }

@@ -7,6 +7,7 @@
 #include <QIODevice>
 #include <print>
 #include <iostream>
+#include "json.hpp"
 
 Discoverer::Discoverer()
 {
@@ -42,4 +43,8 @@ void Discoverer::start()
 void Discoverer::finished() {
     std::print("{{ \"eventType\": \"DeviceScanningEnded\" }}\n");
     std::flush(std::cout);
+}
+
+void Discoverer::process(std::string command) {
+
 }

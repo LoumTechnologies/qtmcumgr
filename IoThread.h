@@ -7,12 +7,13 @@
 
 
 #include <QtCore>
+#include "Discoverer.h"
 
 class IoThread : public QObject {
     Q_OBJECT
 
 public:
-    IoThread();
+    IoThread(Discoverer *discoverer);
     ~IoThread();
 
     void process();
@@ -21,6 +22,8 @@ signals:
     void finished();
     void error(QString error);
 
+private:
+    Discoverer *discoverer;
 };
 
 

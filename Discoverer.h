@@ -16,6 +16,7 @@ public:
     explicit Discoverer();
     ~Discoverer();
     void start();
+    void process(std::string command);
 
 public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
