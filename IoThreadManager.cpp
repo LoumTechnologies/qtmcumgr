@@ -9,7 +9,6 @@ IoThreadManager::IoThreadManager(Discoverer *discoverer) {
     this->discoverer = discoverer;
 }
 
-
 void IoThreadManager::start()
 {
     thread = new QThread();

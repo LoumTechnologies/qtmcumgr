@@ -7,9 +7,9 @@
 #include <QIODevice>
 #include <print>
 #include <iostream>
+#include <qjsondocument.h>
+
 #include "json.hpp"
-#include "Connect.h"
-#include "OsReset.h"
 #include "smp_group_fs_mgmt.h"
 #include "smp_group_img_mgmt.h"
 #include "smp_group_os_mgmt.h"
@@ -18,8 +18,8 @@
 #include "smp_group_stat_mgmt.h"
 #include "smp_group_zephyr_mgmt.h"
 #include "smp_processor.h"
-
-using namespace quicktype;
+#include <QString>
+#include <QJsonObject>
 
 Discoverer::Discoverer()
 {
@@ -78,7 +78,13 @@ void Discoverer::finished() {
 }
 
 void Discoverer::process(std::string command) {
-    OsReset reset;
-    reset_from_json(command, reset);
-    smp_groups->os_mgmt->start_reset(reset.get_force());
+    auto qCommand = QString(command.c_str());
+    auto bytes = qCommand.toUtf8();
+    auto result = QJsonDocument::fromJson(bytes);
+    QJsonObject commandObject = result.object();
+
+    if (commandObject["commandType"] == "reset") {
+        auto force = commandObject["force"].toBool();
+        smp_groups->os_mgmt->start_reset(force);
+    }
 }
