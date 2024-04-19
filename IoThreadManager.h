@@ -13,6 +13,7 @@ class IoThreadManager : QObject {
     Q_OBJECT
 
 public:
+    IoThreadManager(Discoverer *discoverer);
     ~IoThreadManager();
 
 public:
@@ -20,6 +21,7 @@ public:
     void start();
 
 private:
+    Discoverer *discoverer = nullptr;
     QThread *thread = nullptr;
     IoThread *worker = nullptr;
 };

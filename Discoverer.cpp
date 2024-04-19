@@ -38,6 +38,8 @@ void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
 void Discoverer::start()
 {
     discoveryAgent->start();
+    std::print("{{ \"eventType\": \"DeviceScanningStarted\" }}\n");
+    std::flush(std::cout);
 }
 
 void Discoverer::finished() {

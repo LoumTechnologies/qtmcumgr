@@ -5,10 +5,15 @@
 #include "IoThreadManager.h"
 //#include "IoThreadManager.moc"
 
+IoThreadManager::IoThreadManager(Discoverer *discoverer) {
+    this->discoverer = discoverer;
+}
+
+
 void IoThreadManager::start()
 {
     thread = new QThread();
-    worker = new IoThread();
+    worker = new IoThread(discoverer);
     worker->moveToThread(thread);
     //connect( worker, &Worker::error, this, &MyClass::errorString);
     connect( thread, &QThread::started, worker, &IoThread::process);

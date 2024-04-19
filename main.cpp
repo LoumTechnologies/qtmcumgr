@@ -4,9 +4,9 @@
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
-    IoThreadManager instance;
-    instance.start();
     Discoverer discoverer;
     discoverer.start();
+    IoThreadManager instance(&discoverer);
+    instance.start();
     return QCoreApplication::exec();
 }
