@@ -8,6 +8,9 @@
 #include <QObject>
 #include <QBluetoothDeviceDiscoveryAgent>
 
+#include "smp_group_array.h"
+#include "smp_processor.h"
+
 
 class Discoverer : QObject {
     Q_OBJECT
@@ -24,6 +27,8 @@ public slots:
 
 private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
+    smp_processor *processor;
+    smp_group_array *smp_groups;
 };
 
 

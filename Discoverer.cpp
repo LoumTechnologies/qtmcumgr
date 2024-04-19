@@ -8,6 +8,18 @@
 #include <print>
 #include <iostream>
 #include "json.hpp"
+#include "Connect.h"
+#include "OsReset.h"
+#include "smp_group_fs_mgmt.h"
+#include "smp_group_img_mgmt.h"
+#include "smp_group_os_mgmt.h"
+#include "smp_group_settings_mgmt.h"
+#include "smp_group_shell_mgmt.h"
+#include "smp_group_stat_mgmt.h"
+#include "smp_group_zephyr_mgmt.h"
+#include "smp_processor.h"
+
+using namespace quicktype;
 
 Discoverer::Discoverer()
 {
@@ -15,6 +27,15 @@ Discoverer::Discoverer()
     discoveryAgent->setLowEnergyDiscoveryTimeout(0);
     QObject::connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)), this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
     QObject::connect(discoveryAgent, SIGNAL(finished()), this, SLOT(finished()));
+    this->processor = new smp_processor(this);
+    this->smp_groups = new smp_group_array();
+    smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
+    smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
+    smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
+    smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
+    smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
+    smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
+    smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
 }
 
 Discoverer::~Discoverer()
@@ -23,6 +44,15 @@ Discoverer::~Discoverer()
         delete discoveryAgent;
         discoveryAgent = nullptr;
     }
+    delete processor;
+    delete smp_groups->fs_mgmt;
+    delete smp_groups->img_mgmt;
+    delete smp_groups->os_mgmt;
+    delete smp_groups->settings_mgmt;
+    delete smp_groups->shell_mgmt;
+    delete smp_groups->stat_mgmt;
+    delete smp_groups->zephyr_mgmt;
+    delete smp_groups;
 }
 
 void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
@@ -48,5 +78,7 @@ void Discoverer::finished() {
 }
 
 void Discoverer::process(std::string command) {
-
+    OsReset reset;
+    reset_from_json(command, reset);
+    smp_groups->os_mgmt->start_reset(reset.get_force());
 }

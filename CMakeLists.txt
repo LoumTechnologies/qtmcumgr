@@ -53,6 +53,7 @@ add_executable(qtmcumgr main.cpp
         smp_message.h
         json.hpp
         Connect.h
+        OsReset.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core
