@@ -19,7 +19,7 @@ public:
     explicit Discoverer();
     ~Discoverer();
     void start();
-    void process(std::string command);
+    void process(const std::string &command);
 
 public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
@@ -29,6 +29,7 @@ private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
     smp_processor *processor;
     smp_group_array *smp_groups;
+    QMap<QString, smp_transport*> *transports;
 };
 
 

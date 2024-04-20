@@ -51,7 +51,6 @@ add_executable(qtmcumgr main.cpp
         smp_udp.h
         smp_message.cpp
         smp_message.h
-        json.hpp
 )
 target_link_libraries(qtmcumgr
         Qt::Core
