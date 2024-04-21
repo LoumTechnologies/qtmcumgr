@@ -382,7 +382,7 @@ void smp_bluetooth::form_refresh_devices()
     discoveryAgent->start();
 }
 
-void smp_bluetooth::form_connect_to_device(uint16_t index)
+void smp_bluetooth::form_connect_to_device(const QBluetoothDeviceInfo &info)
 {
     if (controller)
     {
@@ -399,7 +399,7 @@ void smp_bluetooth::form_connect_to_device(uint16_t index)
 
             // Connecting signals and slots for connecting to LE services.
         //        QBluetoothAddress bluetooth_device_list = QBluetoothAddress(item->text().left(item->text().indexOf(" ")));
-        controller = QLowEnergyController::createCentral(bluetooth_device_list.at(index));
+        controller = QLowEnergyController::createCentral(info);
         //        controller = QLowEnergyController::createCentral();
         QObject::connect(controller, SIGNAL(connected()), this, SLOT(connected()));
         QObject::connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));

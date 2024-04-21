@@ -58,6 +58,9 @@ private:
     bool device_connected;
     smp_message received_data;
 
+public:
+    void form_connect_to_device(const QBluetoothDeviceInfo &info);
+
 private slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
     void deviceUpdated(const QBluetoothDeviceInfo &info, QBluetoothDeviceInfo::Fields updatedFields);
@@ -76,7 +79,6 @@ private slots:
     void discover_timer_timeout();
 
     void form_refresh_devices();
-    void form_connect_to_device(uint16_t index);
     void form_disconnect_from_device();
 //    void connection_updated(QLowEnergyConnectionParameters parameters);
 

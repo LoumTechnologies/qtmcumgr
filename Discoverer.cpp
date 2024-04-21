@@ -3,8 +3,6 @@
 //
 
 #include "Discoverer.h"
-//#include "Discoverer.moc"
-#include <QIODevice>
 #include <print>
 #include <iostream>
 #include <qjsondocument.h>
@@ -22,13 +20,34 @@
 
 #include "smp_bluetooth.h"
 
-Connection::Connection(QString address, QObject *parent) {
-    transport = new smp_bluetooth();
+Connection::Connection(const QBluetoothDeviceInfo &info, QObject *parent) {
+    auto bluetooth_transport = new smp_bluetooth();
+    transport = bluetooth_transport;
     processor = new smp_processor(parent);
     processor->set_transport(transport);
+
+    bluetooth_transport->form_connect_to_device(info);
+
+    this->processor = new smp_processor(parent);
+    this->smp_groups = new smp_group_array();
+    smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
+    smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
+    smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
+    smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
+    smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
+    smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
+    smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
 }
 
 Connection::~Connection() {
+    delete smp_groups->fs_mgmt;
+    delete smp_groups->img_mgmt;
+    delete smp_groups->os_mgmt;
+    delete smp_groups->settings_mgmt;
+    delete smp_groups->shell_mgmt;
+    delete smp_groups->stat_mgmt;
+    delete smp_groups->zephyr_mgmt;
+    delete smp_groups;
     delete processor;
     delete transport;
 }
@@ -39,16 +58,8 @@ Discoverer::Discoverer()
     discoveryAgent->setLowEnergyDiscoveryTimeout(0);
     QObject::connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)), this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
     QObject::connect(discoveryAgent, SIGNAL(finished()), this, SLOT(finished()));
-    this->processor = new smp_processor(this);
-    this->smp_groups = new smp_group_array();
-    smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
-    smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
-    smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
-    smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
-    smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
-    smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
-    smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
     connections = new QMap<QString, Connection*>();
+    devices = new QMap<QString, QBluetoothDeviceInfo>();
 }
 
 Discoverer::~Discoverer()
@@ -57,20 +68,12 @@ Discoverer::~Discoverer()
         delete discoveryAgent;
         discoveryAgent = nullptr;
     }
-    delete processor;
-    delete smp_groups->fs_mgmt;
-    delete smp_groups->img_mgmt;
-    delete smp_groups->os_mgmt;
-    delete smp_groups->settings_mgmt;
-    delete smp_groups->shell_mgmt;
-    delete smp_groups->stat_mgmt;
-    delete smp_groups->zephyr_mgmt;
-    delete smp_groups;
     auto connectionValues = connections->values();
     for(auto i = 0; i < connectionValues.count(); i++) {
         delete connectionValues[i];
     }
     delete connections;
+    delete devices;
 }
 
 void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
@@ -81,6 +84,7 @@ void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
         info.name().toStdString()
     );
     std::flush(std::cout);
+    (*devices)[info.address().toString()] = info;
 }
 
 void Discoverer::start()
@@ -102,7 +106,12 @@ void Discoverer::process(const std::string &command) {
     if (commandObject["commandType"] == "connect") {
         auto address = commandObject["address"].toString();
         if (!connections->contains(address)) {
-            (*connections)[address] = new Connection(address);
+            auto info = (*devices)[address];
+            (*connections)[address] = new Connection(info);
+            std::print("{{ \"eventType\": \"Connected\", \"address\": \"{0}\" }}\n", address.toStdString());
+        }
+        else {
+            std::print("{{ \"eventType\": \"AlreadyConnected\", \"address\": \"{0}\" }}\n", address.toStdString());
         }
     }
     else if (commandObject["commandType"] == "disconnect") {
@@ -111,12 +120,16 @@ void Discoverer::process(const std::string &command) {
             auto transport = (*connections)[address];
             (*connections).remove(address);
             delete transport;
+            std::print("{{ \"eventType\": \"Disconnected\", \"address\": \"{0}\" }}\n", address.toStdString());
+        } else {
+            std::print("{{ \"eventType\": \"AlreadyDisconnected\", \"address\": \"{0}\" }}\n", address.toStdString());
         }
     }
     else if (commandObject["commandType"] == "reset") {
         auto address = commandObject["address"].toString();
         auto force = commandObject["force"].toBool();
         auto connection = (*connections)[address];
-        smp_groups->os_mgmt->start_reset(force);
+        connection->smp_groups->os_mgmt->start_reset(force);
+        std::print("{{ \"eventType\": \"Reset\", \"address\": \"{0}\" }}\n", address.toStdString());
     }
 }

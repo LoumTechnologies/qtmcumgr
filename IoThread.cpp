@@ -25,8 +25,6 @@ void IoThread::process()
         }
 
         discoverer->process(input_line);
-
-        std::print("{{ \"eventType\": \"Response\", \"request\": \"{0}\" }}\n", input_line);
     }
 
     emit finished();

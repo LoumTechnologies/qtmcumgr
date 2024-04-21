@@ -13,11 +13,12 @@
 
 class Connection {
 public:
-    Connection(QString address, QObject *parent = nullptr);
+    Connection(const QBluetoothDeviceInfo &info, QObject *parent = nullptr);
     ~Connection();
-private:
+public:
     smp_transport *transport;
     smp_processor *processor;
+    smp_group_array *smp_groups;
 };
 
 class Discoverer : QObject {
@@ -35,9 +36,8 @@ public slots:
 
 private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
-    smp_processor *processor;
-    smp_group_array *smp_groups;
     QMap<QString, Connection*> *connections;
+    QMap<QString, QBluetoothDeviceInfo> *devices;
 };
 
 
