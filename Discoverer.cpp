@@ -9,7 +9,6 @@
 #include <iostream>
 #include <qjsondocument.h>
 
-#include "json.hpp"
 #include "smp_group_fs_mgmt.h"
 #include "smp_group_img_mgmt.h"
 #include "smp_group_os_mgmt.h"
@@ -22,6 +21,17 @@
 #include <QJsonObject>
 
 #include "smp_bluetooth.h"
+
+Connection::Connection(QString address, QObject *parent) {
+    transport = new smp_bluetooth();
+    processor = new smp_processor(parent);
+    processor->set_transport(transport);
+}
+
+Connection::~Connection() {
+    delete processor;
+    delete transport;
+}
 
 Discoverer::Discoverer()
 {
@@ -38,7 +48,7 @@ Discoverer::Discoverer()
     smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
     smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
     smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
-    transports = new QMap<QString, smp_transport*>();
+    connections = new QMap<QString, Connection*>();
 }
 
 Discoverer::~Discoverer()
@@ -56,11 +66,11 @@ Discoverer::~Discoverer()
     delete smp_groups->stat_mgmt;
     delete smp_groups->zephyr_mgmt;
     delete smp_groups;
-    auto transportValues = transports->values();
-    for(auto i = 0; i < transportValues.count; i++) {
-        delete transportValues[i];
+    auto connectionValues = connections->values();
+    for(auto i = 0; i < connectionValues.count(); i++) {
+        delete connectionValues[i];
     }
-    delete transports;
+    delete connections;
 }
 
 void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
@@ -91,24 +101,22 @@ void Discoverer::process(const std::string &command) {
 
     if (commandObject["commandType"] == "connect") {
         auto address = commandObject["address"].toString();
-        if (!transports->contains(address)) {
-            smp_transport *transport = new smp_bluetooth();
-            (*transports)[address] = transport;
+        if (!connections->contains(address)) {
+            (*connections)[address] = new Connection(address);
         }
     }
     else if (commandObject["commandType"] == "disconnect") {
         auto address = commandObject["address"].toString();
-        if (transports->contains(address)) {
-            auto transport = (*transports)[address];
-            (*transports).remove(address);
+        if (connections->contains(address)) {
+            auto transport = (*connections)[address];
+            (*connections).remove(address);
             delete transport;
         }
     }
     else if (commandObject["commandType"] == "reset") {
         auto address = commandObject["address"].toString();
         auto force = commandObject["force"].toBool();
-        auto transport = (*transports)[address];
-        smp_groups->os_mgmt
+        auto connection = (*connections)[address];
         smp_groups->os_mgmt->start_reset(force);
     }
 }

@@ -11,6 +11,14 @@
 #include "smp_group_array.h"
 #include "smp_processor.h"
 
+class Connection {
+public:
+    Connection(QString address, QObject *parent = nullptr);
+    ~Connection();
+private:
+    smp_transport *transport;
+    smp_processor *processor;
+};
 
 class Discoverer : QObject {
     Q_OBJECT
@@ -29,7 +37,7 @@ private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
     smp_processor *processor;
     smp_group_array *smp_groups;
-    QMap<QString, smp_transport*> *transports;
+    QMap<QString, Connection*> *connections;
 };
 
 
