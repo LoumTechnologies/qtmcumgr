@@ -7,11 +7,14 @@
 
 #include <QObject>
 #include <QBluetoothDeviceDiscoveryAgent>
+#include <QLowEnergyController>
 
 #include "smp_group_array.h"
 #include "smp_processor.h"
 
-class Connection {
+class Connection : QObject {
+    Q_OBJECT
+
 public:
     Connection(const QBluetoothDeviceInfo &info, QObject *parent = nullptr);
     ~Connection();
@@ -19,6 +22,7 @@ public:
     smp_transport *transport;
     smp_processor *processor;
     smp_group_array *smp_groups;
+    QLowEnergyController *controller;
 };
 
 class Discoverer : QObject {
@@ -33,6 +37,12 @@ public:
 public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
     void finished();
+
+    void connect(QString address);
+
+    void disconnect(QString address);
+
+    void reset(QString address, bool force);
 
 private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;

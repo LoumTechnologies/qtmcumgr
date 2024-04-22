@@ -25,7 +25,9 @@
 #include <QBluetoothUuid>
 #include <QLowEnergyConnectionParameters>
 #include <QLowEnergyCharacteristic>
+#include <QLowEnergyController>
 #include <QTimer>
+#include <print>
 
 //Aim for a connection interval of between 7.5us-30us with a 4 second supervision timeout
 const double connection_interval_min = 7.5;
@@ -57,19 +59,19 @@ smp_bluetooth::smp_bluetooth(QObject *parent)
 //    QObject::connect(bluetooth_window, SIGNAL(connect_to_device(uint16_t)), this, SLOT(form_connect_to_device(uint16_t)));
 //    QObject::connect(bluetooth_window, SIGNAL(disconnect_from_device()), this, SLOT(form_disconnect_from_device()));
 
-    discoveryAgent = new QBluetoothDeviceDiscoveryAgent();
-    discoveryAgent->setLowEnergyDiscoveryTimeout(8000);
-    QObject::connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)), this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
-    QObject::connect(discoveryAgent, SIGNAL(finished()), this, SLOT(finished()));
-    device_connected = false;
-
-    QObject::connect(&retry_timer, SIGNAL(timeout()), this, SLOT(timeout_timer()));
-    retry_timer.setInterval(500);
-    retry_timer.setSingleShot(true);
-
-    QObject::connect(&discover_timer, SIGNAL(timeout()), this, SLOT(discover_timer_timeout()));
-    discover_timer.setInterval(50);
-    discover_timer.setSingleShot(true);
+    // discoveryAgent = new QBluetoothDeviceDiscoveryAgent();
+    // discoveryAgent->setLowEnergyDiscoveryTimeout(8000);
+    // QObject::connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)), this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
+    // QObject::connect(discoveryAgent, SIGNAL(finished()), this, SLOT(finished()));
+    // device_connected = false;
+    //
+    // QObject::connect(&retry_timer, SIGNAL(timeout()), this, SLOT(timeout_timer()));
+    // retry_timer.setInterval(500);
+    // retry_timer.setSingleShot(true);
+    //
+    // QObject::connect(&discover_timer, SIGNAL(timeout()), this, SLOT(discover_timer_timeout()));
+    // discover_timer.setInterval(50);
+    // discover_timer.setSingleShot(true);
 
     mtu_max_worked = 0;
 }
@@ -204,6 +206,11 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
 {
     services.append(service_uuid);
 //    bluetooth_window->add_debug(QString("Service! ").append(service_uuid.toString()));
+
+    std::print("{{ \"eventType\": \"discoveredService\", \"address\": \"{0}\", \"service\": \"{1}\" }}\n",
+        controller->localAddress().toString().toStdString(),
+        service_uuid.toString().toStdString()
+    );
 
     if (service_uuid == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
     {
@@ -397,16 +404,16 @@ void smp_bluetooth::form_connect_to_device(const QBluetoothDeviceInfo &info)
         controller = nullptr;
     }
 
-            // Connecting signals and slots for connecting to LE services.
-        //        QBluetoothAddress bluetooth_device_list = QBluetoothAddress(item->text().left(item->text().indexOf(" ")));
-        controller = QLowEnergyController::createCentral(info);
-        //        controller = QLowEnergyController::createCentral();
-        QObject::connect(controller, SIGNAL(connected()), this, SLOT(connected()));
-        QObject::connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
-        QObject::connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()));
-        QObject::connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(service_discovered(QBluetoothUuid)));
-        QObject::connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
-        //         connect(controller, SIGNAL(connectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
+    // Connecting signals and slots for connecting to LE services.
+    //        QBluetoothAddress bluetooth_device_list = QBluetoothAddress(item->text().left(item->text().indexOf(" ")));
+    controller = QLowEnergyController::createCentral(info);
+    //        controller = QLowEnergyController::createCentral();
+    QObject::connect(controller, SIGNAL(connected()), this, SLOT(connected()));
+    QObject::connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    QObject::connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()));
+    QObject::connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(service_discovered(QBluetoothUuid)));
+    QObject::connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
+    //         connect(controller, SIGNAL(connectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
 
     //     if (isRandomAddress())
     //     {
