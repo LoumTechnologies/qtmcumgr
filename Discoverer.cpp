@@ -21,54 +21,82 @@
 
 #include "smp_bluetooth.h"
 
-Connection::Connection(const QBluetoothDeviceInfo &info, QObject *parent) : QObject(parent) {
-    controller = QLowEnergyController::createCentral(info);
+Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(parent) {
+    this->info = info;
+    controller = QLowEnergyController::createCentral(*info);
     controller->setParent(this);
 
-    connect(controller, &QLowEnergyController::connected, this, [&]() {
-        std::print("{{ \"eventType\": \"connected\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
-        controller->discoverServices();
-    });
-    connect(controller, &QLowEnergyController::disconnected, this, [&]() {
-        std::print("{{ \"eventType\": \"disconnected\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
-    });
-    connect(controller, &QLowEnergyController::discoveryFinished, this, [&]() {
-        std::print("{{ \"eventType\": \"doneDiscoveringServices\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
-    });
+    connect(controller, SIGNAL(connected()), this, SLOT(connected()));
+    connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discoveryFinished()));
+    // [&]() {
+    //     std::print("{{ \"eventType\": \"connected\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
+    //     this->isConnected = true;
+    //     controller->discoverServices();
+    // });
+    // connect(controller, &QLowEnergyController::disconnected, this, [&]() {
+    //     if (isDeleting) {
+    //         return;
+    //     }
+    //     std::print("{{ \"eventType\": \"disconnected\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
+    // });
+    // connect(controller, &QLowEnergyController::discoveryFinished, this, [&]() {
+    //     std::print("{{ \"eventType\": \"doneDiscoveringServices\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
+    // });
 
-    std::print("{{ \"eventType\": \"connectionStarted\", \"address\": \"{0}\" }}\n", info.address().toString().toStdString());
+    std::print("{{ \"eventType\": \"connectionStarted\", \"address\": \"{0}\" }}\n", info->address().toString().toStdString());
     controller->connectToDevice();
 
-    // auto bluetooth_transport = new smp_bluetooth(parent);
-    // transport = bluetooth_transport;
-    //
-    // processor = new smp_processor(parent);
-    // processor->set_transport(transport);
-    // smp_groups = new smp_group_array();
-    // smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
-    // smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
-    // smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
-    // smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
-    // smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
-    // smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
-    // smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
-    //
-    // bluetooth_transport->form_connect_to_device(info);
+    auto bluetooth_transport = new smp_bluetooth(parent);
+    transport = bluetooth_transport;
+
+    processor = new smp_processor(parent);
+    processor->set_transport(transport);
+    smp_groups = new smp_group_array();
+    smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
+    smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
+    smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
+    smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
+    smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
+    smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
+    smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
+
+    bluetooth_transport->form_connect_to_device(*info);
 }
 
-Connection::~Connection() {
-    delete controller;
+void Connection::connected() {
+    std::print("{{ \"eventType\": \"connected\", \"address\": \"{0}\" }}\n", info->address().toString().toStdString());
+    this->isConnected = true;
+    controller->discoverServices();
+}
+void Connection::disconnected() {
+    if (isDeleting) {
+        return;
+    }
+    std::print("{{ \"eventType\": \"disconnected\", \"address\": \"{0}\" }}\n", info->address().toString().toStdString());
+}
+void Connection::discovery_finished() {
 
-    // delete smp_groups->fs_mgmt;
-    // delete smp_groups->img_mgmt;
-    // delete smp_groups->os_mgmt;
-    // delete smp_groups->settings_mgmt;
-    // delete smp_groups->shell_mgmt;
-    // delete smp_groups->stat_mgmt;
-    // delete smp_groups->zephyr_mgmt;
-    // delete smp_groups;
-    // delete processor;
-    // delete transport;
+}
+
+
+Connection::~Connection() {
+    disconnect(controller, SIGNAL(connected()), this, SLOT(connected()));
+    disconnect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    disconnect(controller, SIGNAL(discoveryFinished()), this, SLOT(discoveryFinished()));
+
+    isDeleting = true;
+    delete smp_groups->fs_mgmt;
+    delete smp_groups->img_mgmt;
+    delete smp_groups->os_mgmt;
+    delete smp_groups->settings_mgmt;
+    delete smp_groups->shell_mgmt;
+    delete smp_groups->stat_mgmt;
+    delete smp_groups->zephyr_mgmt;
+    delete smp_groups;
+    delete processor;
+    delete transport;
+    delete controller;
 }
 
 Discoverer::Discoverer()
@@ -170,19 +198,26 @@ void Discoverer::connect(QString address) {
         }
         else {
             auto info = (*devices)[address];
-            (*connections)[address] = new Connection(info, this);
+            (*connections)[address] = new Connection(&info, this);
         }
     }
     else {
-        std::print("{{ \"eventType\": \"alreadyConnected\", \"address\": \"{0}\" }}\n", address.toStdString());
+        auto connection = (*connections)[address];
+        if (connection->isConnected) {
+            std::print("{{ \"eventType\": \"alreadyConnected\", \"address\": \"{0}\" }}\n", address.toStdString());
+        } else {
+            delete connection;
+            connections->remove(address);
+            connect(address);
+        }
     }
 }
 
 void Discoverer::disconnect(QString address) {
     if (connections->contains(address)) {
-        auto transport = (*connections)[address];
+        auto connection = (*connections)[address];
         (*connections).remove(address);
-        delete transport;
+        delete connection;
     } else {
         std::print("{{ \"eventType\": \"alreadyDisconnected\", \"address\": \"{0}\" }}\n", address.toStdString());
     }

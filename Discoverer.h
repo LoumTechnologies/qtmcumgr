@@ -16,13 +16,25 @@ class Connection : QObject {
     Q_OBJECT
 
 public:
-    Connection(const QBluetoothDeviceInfo &info, QObject *parent = nullptr);
+    Connection(QBluetoothDeviceInfo *info, QObject *parent = nullptr);
     ~Connection();
+
+private slots:
+
+    void connected();
+    void disconnected();
+    void discovery_finished();
+
 public:
     smp_transport *transport;
     smp_processor *processor;
     smp_group_array *smp_groups;
     QLowEnergyController *controller;
+    bool isConnected = false;
+    bool isDeleting = false;
+
+private:
+    QBluetoothDeviceInfo *info;
 };
 
 class Discoverer : QObject {
