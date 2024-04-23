@@ -23,7 +23,6 @@ public slots:
     void finished();
     void connect(QString address);
     void disconnect(QString address);
-    void reset(QString address, bool force);
     void start();
 
 private:

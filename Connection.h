@@ -17,21 +17,29 @@ public:
     Connection(QBluetoothDeviceInfo *info, QObject *parent = nullptr);
     ~Connection();
 
+    void reset(bool force);
+    void bootLoaderInfo(QString &query);
+
+    smp_group_array *smp_groups;
+
 private slots:
+    void status(uint8_t user_data, group_status status, QString error_string);
+    void progress(uint8_t user_data, uint8_t percent);
 
-    void connected();
-    void disconnected();
-    void discoveryFinished();
-    void serviceDiscovered(QBluetoothUuid uuid);
-    void errorz(QLowEnergyController::Error error);
-
-public:
+private:
     smp_transport *transport;
     smp_processor *processor;
-    smp_group_array *smp_groups;
-    QLowEnergyController *controller;
     bool isConnected = false;
     bool isDeleting = false;
+
+    QList<image_state_t> images_list;
+    QList<hash_checksum_t> supported_hash_checksum_list;
+    QVariant bootloader_info_response;
+    QByteArray settings_read_response;
+    QByteArray fs_hash_checksum_response;
+    uint32_t fs_size_response;
+    bool uart_transport_locked;
+    QDateTime rtc_time_date_response;
 };
 
 

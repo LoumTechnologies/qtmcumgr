@@ -119,13 +119,7 @@ void Discoverer::connect(QString address) {
     }
     else {
         auto connection = (*connections)[address];
-        if (connection->isConnected) {
-            std::print("{{ \"eventType\": \"alreadyConnected\", \"address\": \"{0}\" }}\n", address.toStdString());
-        } else {
-            delete connection;
-            connections->remove(address);
-            connect(address);
-        }
+        std::print("{{ \"eventType\": \"alreadyConnected\", \"address\": \"{0}\" }}\n", address.toStdString());
     }
 }
 
@@ -139,23 +133,12 @@ void Discoverer::disconnect(QString address) {
     }
 }
 
-void Discoverer::reset(QString address, bool force) {
-    if (!connections->contains(address)) {
-        std::print("{{ \"eventType\": \"error\", \"errorType\": \"deviceNotYetDiscovered\", \"address\": \"{0}\" }}\n",
-                   address.toStdString());
-    } else {
-        auto connection = (*connections)[address];
-        connection->smp_groups->os_mgmt->start_reset(force);
-    }
-}
-
 void Discoverer::process(const std::string &command) {
     auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8());
     QJsonObject commandObject = commandDocument.object();
-    auto isStr = commandObject["commandType"].isString();
-    auto ty = commandObject["commandType"].type();
     auto commandType = commandObject["commandType"].toString();
-    auto tmp = commandType.toStdString();
+
+    auto address = commandObject["address"].toString().toUpper();
 
     if (commandType == "connect") {
         auto address = commandObject["address"].toString().toUpper();
@@ -163,9 +146,22 @@ void Discoverer::process(const std::string &command) {
     } else if (commandType == "disconnect") {
         auto address = commandObject["address"].toString().toUpper();
         disconnect(address);
-    } else if (commandType == "reset") {
-        auto address = commandObject["address"].toString().toUpper();
-        auto force = commandObject["force"].toBool();
-        reset(address, force);
+    }
+    else {
+        if (!connections->contains(address)) {
+            std::print("{{ \"eventType\": \"error\", \"errorType\": \"deviceNotYetDiscovered\", \"address\": \"{0}\" }}\n",
+                       address.toStdString());
+            return;
+        }
+
+        auto connection = (*connections)[address];
+
+        if (commandType == "reset") {
+            auto force = commandObject["force"].toBool();
+            connection->reset(force);
+        } else if (commandType == "bootLoaderInfo") {
+            auto query = commandObject["query"].toString();
+            connection->bootLoaderInfo(query);
+        }
     }
 }
