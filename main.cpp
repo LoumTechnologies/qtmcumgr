@@ -4,9 +4,14 @@
 
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
-    Discoverer discoverer;
-    discoverer.start();
-    IoThreadManager instance(&discoverer);
-    instance.start();
-    return QCoreApplication::exec();
+    auto discoverer = new Discoverer();
+    auto instance = new IoThreadManager(discoverer);
+    QTimer::singleShot(0, [&]() {
+        discoverer->start();
+        instance->start();
+    });
+    auto exitCode = QCoreApplication::exec();
+    delete instance;
+    delete discoverer;
+    return exitCode;
 }

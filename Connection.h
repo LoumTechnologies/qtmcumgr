@@ -17,9 +17,9 @@ public:
     Connection(QBluetoothDeviceInfo *info, QObject *parent = nullptr);
     ~Connection();
 
-    private slots:
+private slots:
 
-        void connected();
+    void connected();
     void disconnected();
     void discoveryFinished();
     void serviceDiscovered(QBluetoothUuid uuid);

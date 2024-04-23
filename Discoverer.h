@@ -16,18 +16,15 @@ class Discoverer : QObject {
 public:
     explicit Discoverer();
     ~Discoverer();
-    void start();
     void process(const std::string &command);
 
 public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
     void finished();
-
     void connect(QString address);
-
     void disconnect(QString address);
-
     void reset(QString address, bool force);
+    void start();
 
 private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
