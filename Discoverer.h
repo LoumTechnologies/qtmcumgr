@@ -5,39 +5,10 @@
 #ifndef QTMCUMGR_DISCOVERER_H
 #define QTMCUMGR_DISCOVERER_H
 
-#include <QObject>
 #include <QBluetoothDeviceDiscoveryAgent>
-#include <QLowEnergyController>
 
 #include "smp_group_array.h"
-#include "smp_processor.h"
-
-class Connection : QObject {
-    Q_OBJECT
-
-public:
-    Connection(QBluetoothDeviceInfo *info, QObject *parent = nullptr);
-    ~Connection();
-
-private slots:
-
-    void connected();
-    void disconnected();
-    void discoveryFinished();
-    void serviceDiscovered(QBluetoothUuid uuid);
-    void errorz(QLowEnergyController::Error error);
-
-public:
-    smp_transport *transport;
-    smp_processor *processor;
-    smp_group_array *smp_groups;
-    QLowEnergyController *controller;
-    bool isConnected = false;
-    bool isDeleting = false;
-
-private:
-    QBluetoothDeviceInfo *info;
-};
+#include "Connection.h"
 
 class Discoverer : QObject {
     Q_OBJECT
