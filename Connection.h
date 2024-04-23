@@ -32,9 +32,6 @@ public:
     QLowEnergyController *controller;
     bool isConnected = false;
     bool isDeleting = false;
-
-private:
-    QBluetoothDeviceInfo *info;
 };
 
 

@@ -10,11 +10,6 @@
 #include "smp_group_fs_mgmt.h"
 #include "smp_group_img_mgmt.h"
 #include "smp_group_os_mgmt.h"
-#include "smp_group_settings_mgmt.h"
-#include "smp_group_shell_mgmt.h"
-#include "smp_group_stat_mgmt.h"
-#include "smp_group_zephyr_mgmt.h"
-#include "smp_processor.h"
 #include <QString>
 #include <QJsonObject>
 
@@ -157,14 +152,18 @@ void Discoverer::reset(QString address, bool force) {
 void Discoverer::process(const std::string &command) {
     auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8());
     QJsonObject commandObject = commandDocument.object();
+    auto isStr = commandObject["commandType"].isString();
+    auto ty = commandObject["commandType"].type();
+    auto commandType = commandObject["commandType"].toString();
+    auto tmp = commandType.toStdString();
 
-    if (commandObject["commandType"] == "connect") {
+    if (commandType == "connect") {
         auto address = commandObject["address"].toString().toUpper();
         connect(address);
-    } else if (commandObject["commandType"] == "disconnect") {
+    } else if (commandType == "disconnect") {
         auto address = commandObject["address"].toString().toUpper();
         disconnect(address);
-    } else if (commandObject["commandType"] == "reset") {
+    } else if (commandType == "reset") {
         auto address = commandObject["address"].toString().toUpper();
         auto force = commandObject["force"].toBool();
         reset(address, force);

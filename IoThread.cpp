@@ -19,12 +19,16 @@ IoThread::~IoThread()
 void IoThread::process()
 {
     while(true) {
-        std::string input_line;
-        if (!getline(std::cin, input_line)) {
+        auto input_line = new std::string();
+        if (!getline(std::cin, *input_line)) {
             break;
         }
 
-        discoverer->process(input_line);
+        QTimer::singleShot(0, QCoreApplication::instance(), [this, input_line]()
+        {
+            discoverer->process(*input_line);
+            delete input_line;
+        });
     }
 
     emit finished();
