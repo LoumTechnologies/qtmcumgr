@@ -23,7 +23,9 @@ private slots:
 
     void connected();
     void disconnected();
-    void discovery_finished();
+    void discoveryFinished();
+    void serviceDiscovered(QBluetoothUuid uuid);
+    void errorz(QLowEnergyController::Error error);
 
 public:
     smp_transport *transport;
