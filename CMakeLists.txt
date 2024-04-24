@@ -53,6 +53,8 @@ add_executable(qtmcumgr main.cpp
         smp_message.h
         Connection.cpp
         Connection.h
+        API.cpp
+        API.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core

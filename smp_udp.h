@@ -46,6 +46,7 @@ public:
     const struct setting_types_internal *items(uint16_t *items) override;
     int send_bytes_waiting(void);
     int has_data(void);*/
+    QString address() override;
 
 private slots:
     void connect_to_device(QString host, uint16_t port);

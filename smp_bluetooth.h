@@ -34,6 +34,7 @@
 #include <qbluetoothservicediscoveryagent.h>
 #include <QLowEnergyController>
 #include <QBluetoothDeviceDiscoveryAgent>
+#include <QTimer>
 
 class smp_bluetooth : public smp_transport
 {
@@ -47,6 +48,7 @@ public:
     int is_connected();
     int send(smp_message *message);
     void close_connect_dialog();
+    QString address() override;
 
 private:
     void form_min_params();
@@ -85,6 +87,19 @@ private slots:
 signals:
 //    void read(QByteArray *message);
 
+private:
+    QList<QBluetoothDeviceInfo> bluetooth_device_list;
+    QList<QBluetoothUuid> services;
+
+    QLowEnergyService *bluetooth_service_mcumgr = nullptr;
+    QLowEnergyCharacteristic bluetooth_characteristic_transmit;
+    uint16_t mtu;
+    uint16_t mtu_max_worked;
+    QByteArray sendbuffer;
+
+    QTimer retry_timer;
+    QTimer discover_timer;
+    int retry_count;
 };
 
 #endif // SMP_BLUETOOTH_H

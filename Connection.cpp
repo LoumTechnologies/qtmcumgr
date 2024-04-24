@@ -100,16 +100,26 @@ Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(pa
 }
 
 Connection::~Connection() {
-    // controller->disconnect();
-    //
-    // disconnect(controller, SIGNAL(connected()), this, SLOT(connected()));
-    // disconnect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
-    // disconnect(controller, SIGNAL(discoveryFinished()), this, SLOT(discoveryFinished()));
-    // disconnect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(serviceDiscovered(QBluetoothUuid)));
-    // disconnect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
+    auto bluetooth_transport = (smp_bluetooth*)transport;
+    disconnect(bluetooth_transport, SIGNAL(receive_waiting(smp_message*)), processor, SLOT(message_received(smp_message*)));
+
+    disconnect(smp_groups->fs_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->fs_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
+    disconnect(smp_groups->img_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->img_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
+    disconnect(smp_groups->img_mgmt, SIGNAL(plugin_to_hex(QByteArray*)), this, SLOT(group_to_hex(QByteArray*)));
+    disconnect(smp_groups->os_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->os_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
+    disconnect(smp_groups->settings_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->settings_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
+    disconnect(smp_groups->shell_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->shell_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
+    disconnect(smp_groups->stat_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->stat_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
+    disconnect(smp_groups->zephyr_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
+    disconnect(smp_groups->zephyr_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
 
     isDeleting = true;
-    // delete controller;
     delete smp_groups->fs_mgmt;
     delete smp_groups->img_mgmt;
     delete smp_groups->os_mgmt;

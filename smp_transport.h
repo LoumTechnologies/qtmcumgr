@@ -69,6 +69,8 @@ public:
         return mtu;
     }
 
+    virtual QString address() = 0;
+
 signals:
 //    void connected();
 //    void disconnected();

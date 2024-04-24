@@ -52,6 +52,7 @@ public:
     void unregister_handler(uint16_t group);
     void set_transport(smp_transport *transport_object);
     uint16_t max_message_data_size(uint16_t mtu);
+    QString address();
 
 private:
     void cleanup();

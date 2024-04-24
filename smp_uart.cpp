@@ -36,6 +36,11 @@ smp_uart::~smp_uart()
 {
 }
 
+QString smp_uart::address() {
+    return QString("");
+}
+
+
 void smp_uart::data_received(QByteArray *message)
 {
     smp_message full_message;

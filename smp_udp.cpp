@@ -70,6 +70,11 @@ smp_udp::~smp_udp()
     delete socket;
 }
 
+QString smp_udp::address() {
+    return socket->peerAddress().toString();
+}
+
+
 int smp_udp::connect(void)
 {
     if (socket_is_connected == true)

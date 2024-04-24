@@ -26,6 +26,8 @@
 #include <iostream>
 #include <print>
 
+#include "smp_bluetooth.h"
+
 smp_processor::smp_processor(QObject *parent)
 {
     Q_UNUSED(parent);
@@ -53,6 +55,10 @@ smp_processor::~smp_processor()
         last_message = nullptr;
         last_message_header = nullptr;
     }
+}
+
+QString smp_processor::address() {
+    return transport->address();
 }
 
 bool smp_processor::send(smp_message *message, uint32_t timeout_ms, uint8_t repeats, bool allow_version_check)
