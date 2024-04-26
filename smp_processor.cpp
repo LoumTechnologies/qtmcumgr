@@ -205,8 +205,6 @@ void smp_processor::message_received(smp_message *response)
 {
     const smp_hdr *response_header = nullptr;
 
-    std::print("got message");
-
     if (!busy)
     {
         //Not busy so this message probably isn't wanted anymore

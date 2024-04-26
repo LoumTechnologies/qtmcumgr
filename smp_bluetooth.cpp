@@ -266,6 +266,10 @@ void smp_bluetooth::mcumgr_service_characteristic_written(QLowEnergyCharacterist
 }
 
 QString smp_bluetooth::address() {
+    if (controller == nullptr)
+    {
+        return QString("");
+    }
     return controller->remoteAddress().toString();
 }
 
