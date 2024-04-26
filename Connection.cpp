@@ -69,19 +69,20 @@ Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(pa
     auto bluetooth_transport = new smp_bluetooth(parent);
     transport = bluetooth_transport;
 
-     processor = new smp_processor(parent);
-     processor->set_transport(transport);
-     smp_groups = new smp_group_array();
-     smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
-     smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
-     smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
-     smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
-     smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
-     smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
-     smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
+    processor = new smp_processor(parent);
+    processor->set_transport(transport);
+    smp_groups = new smp_group_array();
+    smp_groups->fs_mgmt = new smp_group_fs_mgmt(processor);
+    smp_groups->img_mgmt = new smp_group_img_mgmt(processor);
+    smp_groups->os_mgmt = new smp_group_os_mgmt(processor);
+    smp_groups->settings_mgmt = new smp_group_settings_mgmt(processor);
+    smp_groups->shell_mgmt = new smp_group_shell_mgmt(processor);
+    smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
+    smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
 
-     bluetooth_transport->form_connect_to_device(*info);
+    bluetooth_transport->form_connect_to_device(*info);
 
+    connect(bluetooth_transport, SIGNAL(receive_waiting(smp_message*)), processor, SLOT(message_received(smp_message*)));
     connect(smp_groups->fs_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
     connect(smp_groups->fs_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
     connect(smp_groups->img_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
