@@ -223,7 +223,7 @@ bool smp_group_os_mgmt::parse_task_stats_response(QCborStreamReader &reader, boo
 
                         if (key == "tasks")
                         {
-                            std::cout << "in tasks";
+//                            std::cout << "in tasks";
                             *in_tasks = true;
                         }
                 }
@@ -853,7 +853,7 @@ void smp_group_os_mgmt::receive_ok(uint8_t version, uint8_t op, uint16_t group, 
             uint32_t buffer_count;
             bool good = parse_mcumgr_parameters_response(cbor_reader, &buffer_size, &buffer_count);
 
-            std::cout << "buffer size: " << buffer_size << ", buffer count: " << buffer_count;
+//            std::cout << "buffer size: " << buffer_size << ", buffer count: " << buffer_count;
 
             emit status(smp_user_data, STATUS_COMPLETE, QString("Buffer size: %1\nBuffer count: %2").arg(QString::number(buffer_size), QString::number(buffer_count)));
         }
@@ -864,7 +864,7 @@ void smp_group_os_mgmt::receive_ok(uint8_t version, uint8_t op, uint16_t group, 
             QString response;
             bool good = parse_os_application_info_response(cbor_reader, &response);
 
-            std::cout << response.toStdString();
+//            std::cout << response.toStdString();
 
             emit status(smp_user_data, STATUS_COMPLETE, response);
         }

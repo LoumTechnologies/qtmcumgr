@@ -4,6 +4,8 @@
 
 #include "Connection.h"
 #include <print>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 #include "smp_bluetooth.h"
 #include "smp_group_settings_mgmt.h"
@@ -11,6 +13,8 @@
 #include "smp_group_stat_mgmt.h"
 #include "smp_group_zephyr_mgmt.h"
 #include "smp_processor.h"
+#include "CommonParameters.h"
+#include "API.h"
 
 enum mcumgr_action_t {
     ACTION_IDLE,
@@ -137,6 +141,11 @@ void Connection::reset(bool force) {
     smp_groups->os_mgmt->start_reset(force);
 }
 
+void Connection::getImages(CommonParameters &parameters) {
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
+    smp_groups->img_mgmt->start_image_get(&images);
+}
+
 void Connection::bootLoaderInfo(QString &query) {
     smp_groups->os_mgmt->start_bootloader_info(query, &bootloader_info_response);
 }
@@ -201,12 +210,49 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_IMG_IMAGE_LIST)
             {
+                QJsonObject rootObject;
+                QJsonArray imagesArray;
+
                 uint8_t i = 0;
                 while (i < images_list.length())
                 {
+                    auto image = images_list[i];
+
+                    QJsonObject imageObject;
+                    imageObject.insert("image", (int)image.image); // Example integer value
+                    imageObject.insert("set", image.image_set); // Example boolean value
+                    QJsonArray slotStatesArray;
+
+                    for(auto j = 0; j < image.slot_list.count(); j++) {
+                        auto slot = image.slot_list[j];
+
+                        QJsonObject slotStateObject;
+                        slotStateObject.insert("slot", (int)slot.slot); // Example uint32_t value
+                        slotStateObject.insert("version", (QString)slot.version.toHex()); // Example QByteArray value
+                        slotStateObject.insert("hash", (QString)slot.hash.toHex()); // Example QByteArray value
+                        slotStateObject.insert("bootable", slot.bootable); // Example boolean value
+                        slotStateObject.insert("pending", slot.pending); // Example boolean value
+                        slotStateObject.insert("confirmed", slot.confirmed); // Example boolean value
+                        slotStateObject.insert("active", slot.active); // Example boolean value
+                        slotStateObject.insert("permanent", slot.permanent); // Example boolean value
+                        slotStateObject.insert("splitstatus", slot.splitstatus); // Example boolean value
+
+                        slotStatesArray.append(slotStateObject);
+                    }
+
+                    imageObject.insert("slotStates", slotStatesArray);
+                    imagesArray.append(imageObject);
+
                     // model_image_state.appendRow(images_list[i].item);
                     ++i;
                 }
+
+                // Convert the QJsonObject to a QByteArray
+                rootObject.insert("images", imagesArray);
+                QJsonDocument doc(rootObject);
+                QString jsonData = doc.toJson(QJsonDocument::Compact);
+
+                API::sendEvent(std::format("{0}\n", jsonData.toStdString()));
             }
             else if (user_data == ACTION_IMG_IMAGE_SET)
             {

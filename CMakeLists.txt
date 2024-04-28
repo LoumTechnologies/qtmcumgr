@@ -55,6 +55,8 @@ add_executable(qtmcumgr main.cpp
         Connection.h
         API.cpp
         API.h
+        CommonParameters.cpp
+        CommonParameters.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core

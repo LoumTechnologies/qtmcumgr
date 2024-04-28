@@ -15,6 +15,7 @@
 
 #include "API.h"
 #include "smp_bluetooth.h"
+#include "CommonParameters.h"
 
 Discoverer::Discoverer()
 {
@@ -146,6 +147,8 @@ void Discoverer::process(const std::string &command) {
         disconnect(address);
     }
     else {
+        auto parameters = CommonParameters::Load(commandObject);
+
         if (!connections->contains(address)) {
             API::sendEvent(std::format("{{ \"eventType\": \"error\", \"errorType\": \"deviceNotYetDiscovered\", \"address\": \"{0}\" }}\n",
                        address.toStdString()));
@@ -160,6 +163,8 @@ void Discoverer::process(const std::string &command) {
         } else if (commandType == "bootLoaderInfo") {
             auto query = commandObject["query"].toString();
             connection->bootLoaderInfo(query);
+        } else if (commandType == "getImages") {
+            connection->getImages(parameters);
         }
     }
 }

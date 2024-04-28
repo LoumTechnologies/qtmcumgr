@@ -9,6 +9,7 @@
 #include <QLowEnergyController>
 #include "smp_group_array.h"
 #include "smp_processor.h"
+#include "CommonParameters.h"
 
 class Connection : QObject {
     Q_OBJECT
@@ -21,6 +22,8 @@ public:
     void bootLoaderInfo(QString &query);
 
     smp_group_array *smp_groups;
+
+    void getImages(CommonParameters &parameters);
 
 private slots:
     void status(uint8_t user_data, group_status status, QString error_string);
@@ -40,6 +43,7 @@ private:
     uint32_t fs_size_response;
     bool uart_transport_locked;
     QDateTime rtc_time_date_response;
+    QList<image_state_t> images;
 };
 
 

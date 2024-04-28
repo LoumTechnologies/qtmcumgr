@@ -726,8 +726,8 @@ void smp_group_fs_mgmt::receive_ok(uint8_t version, uint8_t op, uint16_t group, 
             bool good = parse_status_response(cbor_reader, file_size_object);
             mode = MODE_IDLE;
 
-            std::cout << "status done";
-            std::cout << "Len: " << *file_size_object;
+//            std::cout << "status done";
+//            std::cout << "Len: " << *file_size_object;
 
             emit status(smp_user_data, STATUS_COMPLETE, nullptr);
         }
@@ -750,18 +750,18 @@ void smp_group_fs_mgmt::receive_ok(uint8_t version, uint8_t op, uint16_t group, 
             bool good = parse_supported_hashes_checksums_response(cbor_reader, false, nullptr, &temp_item);
             mode = MODE_IDLE;
 
-            std::cout << "supported hash/checksum done";
+//            std::cout << "supported hash/checksum done";
             emit status(smp_user_data, STATUS_COMPLETE, nullptr);
         }
         else if (mode == MODE_FILE_CLOSE && command == COMMAND_FILE_CLOSE)
         {
             mode = MODE_IDLE;
-            std::cout << "file close done";
+//            std::cout << "file close done";
             emit status(smp_user_data, STATUS_COMPLETE, nullptr);
         }
         else
         {
-            std::cerr << "Unsupported command received";
+//            std::cerr << "Unsupported command received";
         }
     }
 }

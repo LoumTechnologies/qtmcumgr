@@ -150,13 +150,13 @@ bool smp_group_img_mgmt::extract_header(QByteArray *file_data, image_endian_t *e
 
     if (memcmp(mcuboot_magic, ih_magic_v2, sizeof(mcuboot_magic)) == 0 || memcmp(mcuboot_magic, ih_magic_v1, sizeof(mcuboot_magic)) == 0)
     {
-        std::cout << "Image is big endian";
+//        std::cout << "Image is big endian";
         *endian = ENDIAN_BIG;
     }
     else if (memcmp(mcuboot_magic, ih_magic_none, sizeof(mcuboot_magic)) == 0)
     {
         //As header is empty, it is not possible to know if this is big or little endian
-        std::cout << "Image endianess is not known";
+//        std::cout << "Image endianess is not known";
         *endian = ENDIAN_UNKNOWN;
     }
     else
@@ -165,12 +165,12 @@ bool smp_group_img_mgmt::extract_header(QByteArray *file_data, image_endian_t *e
 
         if (memcmp(reversed_mcuboot_magic, ih_magic_v2, sizeof(mcuboot_magic)) == 0 || memcmp(reversed_mcuboot_magic, ih_magic_v1, sizeof(mcuboot_magic)) == 0)
         {
-            std::cout << "Image is little endian";
+//            std::cout << "Image is little endian";
             *endian = ENDIAN_LITTLE;
         }
         else
         {
-            std::cout << "Image does not have MCUboot header";
+//            std::cout << "Image does not have MCUboot header";
             return false;
         }
     }
@@ -566,13 +566,13 @@ bool smp_group_img_mgmt::parse_state_response(QCborStreamReader &reader, QString
 
                 while (reader.lastError() == QCborError::NoError && reader.hasNext())
                 {
-                    std::cout << "container/map";
+//                    std::cout << "container/map";
                     parse_state_response(reader, array_name_dupe);
                 }
 
                 if (reader.lastError() == QCborError::NoError)
                 {
-                    std::cout << "leave";
+//                    std::cout << "leave";
                     reader.leaveContainer();
 
                     if (array_name == "images")
