@@ -151,6 +151,11 @@ void Connection::getImages(CommonParameters &parameters) {
     smp_groups->img_mgmt->start_image_get(&images);
 }
 
+void Connection::setImages(QByteArray *imageHash, bool confirm, CommonParameters &parameters) {
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
+    smp_groups->img_mgmt->start_image_set(imageHash, confirm, &images);
+}
+
 void Connection::bootLoaderInfo(QString &query) {
     smp_groups->os_mgmt->start_bootloader_info(query, &bootloader_info_response);
 }

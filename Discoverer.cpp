@@ -165,6 +165,10 @@ void Discoverer::process(const std::string &command) {
             connection->bootLoaderInfo(query);
         } else if (commandType == "getImages") {
             connection->getImages(parameters);
+        } else if (commandType == "setImage") {
+            auto hashString = QByteArray::fromHex(commandObject["hashString"].toString().toLatin1());
+            auto confirm = commandObject["confirm"].toBool();
+            connection->setImage(&hashString, confirm, parameters);
         } else if (commandType == "imageUpload") {
             auto image = commandObject["image"].toInt();
             auto fileName = commandObject["fileName"].toString();
