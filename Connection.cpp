@@ -141,6 +141,11 @@ void Connection::reset(bool force) {
     smp_groups->os_mgmt->start_reset(force);
 }
 
+void Connection::imageUpload(int image, QString fileName, bool upgrade, QByteArray *imageHash, CommonParameters &parameters) {
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
+    smp_groups->img_mgmt->start_firmware_update(image, fileName, upgrade, imageHash);
+}
+
 void Connection::getImages(CommonParameters &parameters) {
     smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
     smp_groups->img_mgmt->start_image_get(&images);

@@ -24,6 +24,7 @@ public:
     smp_group_array *smp_groups;
 
     void getImages(CommonParameters &parameters);
+    void imageUpload(int image, QString fileName, bool upgrade, QByteArray *imageHash, CommonParameters &parameters);
 
 private slots:
     void status(uint8_t user_data, group_status status, QString error_string);
