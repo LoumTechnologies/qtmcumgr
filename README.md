@@ -1,3 +1,5 @@
+# qtmcumgr
+
 This is a port of [AuTerm](https://github.com/thedjnK/AuTerm/) with a stdin/stdout JSON API instead of a GUI. It focuses on providing a client implementation of mcumgr for Bluetooth on Windows.
 
 The executable takes no command line arguments. It immediately starts discovering devices. When a device is discovered, something like this gets printed out in stdout:
