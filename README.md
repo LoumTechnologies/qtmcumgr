@@ -25,14 +25,14 @@ This will result in messages like the following:
 The second line means that you can send mcumgr commands to this device. Not all commands are supported yet. Once the mcumgr service has been discovered, you can send mcumgr commands like this:
 
 ```
-{ "commandType": "reset", "address": "C0:A7:8F:71:98:25", "force": true }
+{ "commandType": "reset", "address": "00:00:00:00:00:00", "force": true }
 ```
 
 This results in the following output:
 
 ```
-{ "eventType": "resetCompleted", "address": C0:A7:8F:71:98:25 }
-{ "eventType": "disconnected", "address": "C0:A7:8F:71:98:25" }
+{ "eventType": "resetCompleted", "address": "00:00:00:00:00:00" }
+{ "eventType": "disconnected", "address": "00:00:00:00:00:00" }
 ```
 
 (The disconnect happens because the device was reset; normally the disconnect doesn't happen after every command.)
