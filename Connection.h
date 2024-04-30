@@ -24,7 +24,7 @@ public:
     smp_group_array *smp_groups;
 
     void getImages(CommonParameters &parameters);
-    void imageUpload(int image, QString fileName, bool upgrade, QByteArray *imageHash, CommonParameters &parameters);
+    void imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters);
     void setImage(QByteArray *imageHash, bool confirm, CommonParameters &parameters);
 
 private slots:
@@ -46,6 +46,7 @@ private:
     bool uart_transport_locked;
     QDateTime rtc_time_date_response;
     QList<image_state_t> images;
+    QByteArray imageHash;
 };
 
 

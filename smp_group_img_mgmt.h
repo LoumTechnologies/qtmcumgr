@@ -82,9 +82,10 @@ public:
 signals:
     void plugin_to_hex(QByteArray *data);
 
+public:
+    bool extract_hash(QByteArray *file_data, QByteArray *hash);
 private:
     bool extract_header(QByteArray *file_data, image_endian_t *endian);
-    bool extract_hash(QByteArray *file_data, QByteArray *hash);
     bool parse_upload_response(QCborStreamReader &reader, int64_t *new_off, img_mgmt_upload_match *match);
     bool parse_state_response(QCborStreamReader &reader, QString array_name);
     void file_upload(QByteArray *message);

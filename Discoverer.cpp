@@ -169,12 +169,11 @@ void Discoverer::process(const std::string &command) {
             auto hashString = QByteArray::fromHex(commandObject["hashString"].toString().toLatin1());
             auto confirm = commandObject["confirm"].toBool();
             connection->setImage(&hashString, confirm, parameters);
-        } else if (commandType == "imageUpload") {
+        } else if (commandType == "uploadImage") {
             auto image = commandObject["image"].toInt();
             auto fileName = commandObject["fileName"].toString();
             auto upgrade = commandObject["upgrade"].toBool();
-            auto hashString = QByteArray::fromHex(commandObject["hashString"].toString().toLatin1());
-            connection->imageUpload(image, fileName, upgrade, &hashString, parameters);
+            connection->imageUpload(image, fileName, upgrade, parameters);
         }
     }
 }

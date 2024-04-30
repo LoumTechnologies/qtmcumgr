@@ -141,9 +141,9 @@ void Connection::reset(bool force) {
     smp_groups->os_mgmt->start_reset(force);
 }
 
-void Connection::imageUpload(int image, QString fileName, bool upgrade, QByteArray *imageHash, CommonParameters &parameters) {
+void Connection::imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters) {
     smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
-    smp_groups->img_mgmt->start_firmware_update(image, fileName, upgrade, imageHash);
+    smp_groups->img_mgmt->start_firmware_update(image, fileName, upgrade, &imageHash);
 }
 
 void Connection::getImages(CommonParameters &parameters) {
@@ -173,6 +173,10 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
     // bool finished = true;
     //
     // log_debug() << "Status: " << status;
+
+    if (status == STATUS_ERROR) {
+        API::sendEvent(R"({ "eventType": "error" })");
+    }
 
     if (sender() == smp_groups->img_mgmt)
     {
