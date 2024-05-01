@@ -172,6 +172,12 @@ void Discoverer::process(const std::string &command) {
         } else if (commandType == "uploadImage") {
             auto image = commandObject["image"].toInt();
             auto fileName = commandObject["fileName"].toString();
+//            if (!fileName.endsWith(".bin")) {
+//                API::sendEvent(std::format("{{ \"eventType\": \"error\", \"errorType\": \"incorrectFileExtension\", \"address\": \"{0}\", \"fileName\": \"{1}\" }}\n",
+//                                           address.toStdString(),
+//                                           fileName.toStdString()));
+//                return;
+//            }
             auto upgrade = commandObject["upgrade"].toBool();
             connection->imageUpload(image, fileName, upgrade, parameters);
         }

@@ -7,13 +7,13 @@
 CommonParameters CommonParameters::Load(QJsonObject &json) {
     auto result = CommonParameters();
     if (!json["protocolVersion"].isDouble()) {
-        result.protocolVersion = 0;
+        result.protocolVersion = 1;
     }
     else {
         result.protocolVersion = json["protocolVersion"].toInt();
     }
     if (!json["mtu"].isDouble()) {
-        result.mtu = 0;
+        result.mtu = 256;
     }
     else {
         result.mtu = json["mtu"].toInt();

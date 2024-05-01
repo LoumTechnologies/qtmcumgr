@@ -45,7 +45,6 @@ private:
     uint32_t fs_size_response;
     bool uart_transport_locked;
     QDateTime rtc_time_date_response;
-    QList<image_state_t> images;
     QByteArray imageHash;
 };
 
