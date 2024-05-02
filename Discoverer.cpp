@@ -81,7 +81,7 @@ void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
     }
 
     API::sendEvent(std::format(
-        "{{ \"eventType\": \"deviceDiscovered\", \"address\": \"{0}\", \"name\": \"{1}\", \"cached\": {2}, \"valid\": {3}, \"rssi\": {4}, \"majorDeviceClass\": \"{5}\", \"minorDeviceClass\": {6} }}\n",
+        R"({{ "eventType": "deviceDiscovered", "address": "{0}", "name": "{1}", "cached": {2}, "valid": {3}, "rssi": {4}, "majorDeviceClass": "{5}", "minorDeviceClass": {6} }})",
         info.address().toString().toStdString(),
         info.name().toStdString(),
         cached,
@@ -98,17 +98,17 @@ void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
 void Discoverer::start()
 {
     discoveryAgent->start();
-    API::sendEvent("{ \"eventType\": \"deviceScanningStarted\" }\n");
+    API::sendEvent(R"({ "eventType": "deviceScanningStarted" })");
 }
 
 void Discoverer::finished() {
-    API::sendEvent("{ \"eventType\": \"deviceScanningEnded\" }\n");
+    API::sendEvent(R"({ "eventType": "deviceScanningEnded" })");
 }
 
 void Discoverer::connect(QString address) {
     if (!connections->contains(address)) {
         if (!devices->contains(address)) {
-            API::sendEvent(std::format("{{ \"eventType\": \"error\", \"errorType\": \"deviceNotYetDiscovered\", \"address\": \"{0}\" }}\n",
+            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
                        address.toStdString()));
         }
         else {
@@ -118,7 +118,7 @@ void Discoverer::connect(QString address) {
     }
     else {
         auto connection = (*connections)[address];
-        API::sendEvent(std::format("{{ \"eventType\": \"alreadyConnected\", \"address\": \"{0}\" }}\n", address.toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "address": "{0}" }})", address.toStdString()));
     }
 }
 
@@ -128,7 +128,7 @@ void Discoverer::disconnect(QString address) {
         (*connections).remove(address);
         delete connection;
     } else {
-        API::sendEvent(std::format("{{ \"eventType\": \"alreadyDisconnected\", \"address\": \"{0}\" }}\n", address.toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "address": "{0}" }})", address.toStdString()));
     }
 }
 
@@ -150,7 +150,7 @@ void Discoverer::process(const std::string &command) {
         auto parameters = CommonParameters::Load(commandObject);
 
         if (!connections->contains(address)) {
-            API::sendEvent(std::format("{{ \"eventType\": \"error\", \"errorType\": \"deviceNotYetDiscovered\", \"address\": \"{0}\" }}\n",
+            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
                        address.toStdString()));
             return;
         }

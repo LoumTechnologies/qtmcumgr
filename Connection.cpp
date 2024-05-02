@@ -266,7 +266,7 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
                 QJsonDocument doc(rootObject);
                 QString jsonData = doc.toJson(QJsonDocument::Compact);
 
-                API::sendEvent(std::format("{0}\n", jsonData.toStdString()));
+                API::sendEvent(std::format("{0}", jsonData.toStdString()));
             }
             else if (user_data == ACTION_IMG_IMAGE_SET)
             {

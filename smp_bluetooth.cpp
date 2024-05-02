@@ -126,7 +126,7 @@ void smp_bluetooth::finished()
 void smp_bluetooth::connected()
 {
 //    bluetooth_window->add_debug("Connected!");
-    API::sendEvent(std::format("{{ \"eventType\": \"connected\", \"address\": \"{0}\" }}\n", controller->remoteAddress().toString().toStdString()));
+    API::sendEvent(std::format(R"({{ "eventType": "connected", "address": "{0}" }})", controller->remoteAddress().toString().toStdString()));
     controller->discoverServices();
     device_connected = true;
     mtu = default_mtu;
@@ -135,7 +135,7 @@ void smp_bluetooth::connected()
 
 void smp_bluetooth::disconnected()
 {
-    API::sendEvent(std::format("{{ \"eventType\": \"disconnected\", \"address\": \"{0}\" }}\n", controller->remoteAddress().toString().toStdString()));
+    API::sendEvent(std::format(R"({{ "eventType": "disconnected", "address": "{0}" }})", controller->remoteAddress().toString().toStdString()));
 //    bluetooth_window->add_debug("Disconnected!");
     device_connected = false;
     mtu_max_worked = 0;
@@ -169,7 +169,7 @@ void smp_bluetooth::disconnected()
 
 void smp_bluetooth::discovery_finished()
 {
-    API::sendEvent(std::format("{{ \"eventType\": \"serviceDiscoveryFinished\", \"address\": \"{0}\" }}\n", controller->remoteAddress().toString().toStdString()));
+    API::sendEvent(std::format(R"({{ "eventType": "serviceDiscoveryFinished", "address": "{0}" }})", controller->remoteAddress().toString().toStdString()));
 //    bluetooth_window->add_debug("Service scan finished.");
     //bluetooth_service_mcumgr = controller->createServiceObject(QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")));
 
@@ -202,7 +202,7 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
 
     if (service_uuid == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
     {
-        API::sendEvent(std::format("{{ \"eventType\": \"serviceDiscovered\", \"address\": \"{0}\", \"service\": \"{1}\", \"serviceDescription\": \"MCUMGR\" }}\n",
+        API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
             controller->remoteAddress().toString().toStdString(),
             service_uuid.toString(QUuid::WithoutBraces).toStdString()
         ));
@@ -253,7 +253,7 @@ void smp_bluetooth::mcumgr_service_characteristic_written(QLowEnergyCharacterist
         {
             if (!bluetooth_characteristic_transmit.isValid())
             {
-                API::sendEvent(std::format("{{ \"eventType\": \"characteristicInvalid\", \"address\": \"{0}\" }}\n",
+                API::sendEvent(std::format(R"({{ "eventType": "characteristicInvalid", "address": "{0}" }})",
                                            controller->remoteAddress().toString().toStdString()
                 ));
             }
@@ -331,7 +331,7 @@ void smp_bluetooth::errorz(QLowEnergyController::Error error)
     else if (error == QLowEnergyController::Error::MissingPermissionsError) errorString = "MissingPermissionsError";
     else if (error == QLowEnergyController::Error::RssiReadError) errorString = "RssiReadError";
     else errorString = "UnlistedError";
-    API::sendEvent(std::format("{{ \"eventType\": \"error\", \"errorType\": \"{0}\", \"address\": \"{1}\" }}\n",
+    API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "{0}", "address": "{1}" }})",
         errorString.toStdString(),
         controller->remoteAddress().toString().toStdString()
     ));
@@ -366,7 +366,7 @@ int smp_bluetooth::send(smp_message *message)
 
     if (!bluetooth_characteristic_transmit.isValid())
     {
-        API::sendEvent(std::format("{{ \"eventType\": \"invalidCharacteristic\", \"address\": \"{0}\" }}\n", address().toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "invalidCharacteristic", "address": "{0}" }})", address().toStdString()));
         return 0;
     }
 

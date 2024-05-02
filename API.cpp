@@ -8,7 +8,7 @@
 
 namespace API {
     void sendEvent(std::string str) {
-        std::print("{0}", str);
+        std::print("{0}\n", str);
         std::flush(std::cout);
     }
 }
