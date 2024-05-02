@@ -366,7 +366,7 @@ int smp_bluetooth::send(smp_message *message)
 
     if (!bluetooth_characteristic_transmit.isValid())
     {
-        API::sendEvent(std::format("{{ \"eventType\": \"invalidCharacteristic\", \"address\": \"{0}\" }}", address().toStdString()));
+        API::sendEvent(std::format("{{ \"eventType\": \"invalidCharacteristic\", \"address\": \"{0}\" }}\n", address().toStdString()));
         return 0;
     }
 
