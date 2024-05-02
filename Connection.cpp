@@ -142,7 +142,7 @@ void Connection::reset(bool force) {
 }
 
 void Connection::imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters) {
-    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_UPLOAD);
     smp_groups->img_mgmt->start_firmware_update(image, fileName, upgrade, &imageHash);
 }
 
@@ -152,7 +152,7 @@ void Connection::getImages(CommonParameters &parameters) {
 }
 
 void Connection::setImage(QByteArray *imageHash, bool confirm, CommonParameters &parameters) {
-    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_SET);
     smp_groups->img_mgmt->start_image_set(imageHash, confirm, &images_list);
 }
 
