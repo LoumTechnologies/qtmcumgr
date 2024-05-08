@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>CFBundleExecutable</key>
+        <string>qtmcumgr</string>
+        <key>CFBundleIdentifier</key>
+        <string>com.loumtechnologies.qtmcumgr</string>
+        <key>NSBluetoothAlwaysUsageDescription</key>
+        <string>qtmcumgr wants to access your Bluetooth adapter</string>
+        <key>NSBluetoothPeripheralUsageDescription</key>
+        <string>Your app needs access to Bluetooth to connect to devices.</string>
+</dict>
+</plist>

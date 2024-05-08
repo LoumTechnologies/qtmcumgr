@@ -162,7 +162,7 @@ void smp_processor::message_timeout()
         if (i == group_handlers.length())
         {
             //There is no registered handler for this group
-            std::print(std::cerr, "No registered handler for group {0}, cannot send timeout message.", group);
+            std::cerr << "No registered handler for group " << group << ", cannot send timeout message." << std::endl;
             cleanup();
         }
         else
@@ -208,7 +208,7 @@ void smp_processor::message_received(smp_message *response)
     if (!busy)
     {
         //Not busy so this message probably isn't wanted anymore
-        std::print(std::cerr, "Received message when not awaiting for a response");
+        std::cerr << "Received message when not awaiting for a response" << std::endl;
         return;
     }
 

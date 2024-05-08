@@ -79,7 +79,7 @@ void smp_uart::serial_read(QByteArray *rec_data)
 
             if (SMPBuffer.length() == 0)
             {
-                std::print(std::cerr, "Failed decoding base64");
+                std::cerr << "Failed decoding base64";
             }
             else if (SMPBuffer.length() > 2)
             {
@@ -103,7 +103,7 @@ void smp_uart::serial_read(QByteArray *rec_data)
                     else
                     {
                         //CRC failure
-                        std::print(std::cerr, "CRC failure, expected {0} but got {1}", message_crc, crc);
+                        std::cerr << "CRC failure, expected " << message_crc << " but got " << crc << std::endl;
                     }
                 }
                 else
@@ -134,7 +134,7 @@ void smp_uart::serial_read(QByteArray *rec_data)
 
             if (SMPBuffer.length() == 0)
             {
-                std::print(std::cerr, "Failed decoding base64");
+                std::cerr << "Failed decoding base64";
             }
             else if (SMPBuffer.length() > 0)
             {
@@ -156,7 +156,7 @@ void smp_uart::serial_read(QByteArray *rec_data)
                     else
                     {
                         //CRC failure
-                        std::print(std::cerr, "CRC failure, expected {0} but got {1}", message_crc, crc);
+                        std::cerr << "CRC failure, expected " << message_crc << " but got " << crc;
                     }
 
                     SMPBufferActualData.clear();
@@ -194,7 +194,7 @@ void smp_uart::serial_read(QByteArray *rec_data)
 
     if (SerialData.length() > 10 && SerialData.indexOf(smp_first_header) == -1 && SerialData.indexOf(smp_continuation_header) == -1)
     {
-        std::print(std::cerr, "Cleared garbage data in UART SMP transport buffer");
+        std::cerr << "Cleared garbage data in UART SMP transport buffer";
         SerialData.clear();
     }
 }

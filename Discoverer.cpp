@@ -91,8 +91,6 @@ void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
         info.minorDeviceClass()
     ));
     (*devices)[info.address().toString().toUpper()] = info;
-
-    //connect(info.address().toString().toUpper());
 }
 
 void Discoverer::start()

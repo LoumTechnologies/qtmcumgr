@@ -6,8 +6,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_PREFIX_PATH "C:/Qt/6.7.0/msvc2019_64/lib/cmake")
-
 find_package(Qt6 COMPONENTS
         Core
         Bluetooth
@@ -64,6 +62,12 @@ target_link_libraries(qtmcumgr
 )
 
 find_package(Qt6 REQUIRED COMPONENTS Bluetooth)
+
+set(CMAKE_INSTALL_PREFIX "/Applications")
+set(CMAKE_MACOSX_BUNDLE TRUE)
+set(CMAKE_MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist")
+
+target_link_options(qtmcumgr PRIVATE LINKER:-sectcreate,__TEXT,__info_plist,${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
