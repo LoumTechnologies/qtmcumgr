@@ -21,8 +21,8 @@ public:
 public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
     void finished();
-    void connect(QString address);
-    void disconnect(QString address);
+    void connect(QString id);
+    void disconnect(QString id);
     void start();
 
 private:

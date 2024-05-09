@@ -80,17 +80,31 @@ void Discoverer::deviceDiscovered(const QBluetoothDeviceInfo &info)
         majorDeviceClass = "UncategorizedDevice";
     }
 
+    auto addressOrDeviceUuid = info.address().toString();
+
+    if (addressOrDeviceUuid == "00:00:00:00:00:00")
+    {
+        addressOrDeviceUuid = info.deviceUuid().toString(QUuid::WithoutBraces);
+    }
+
+    if (devices->contains(addressOrDeviceUuid))
+    {
+        return;
+    }
+
+    (*devices)[addressOrDeviceUuid] = info;
+
     API::sendEvent(std::format(
-        R"({{ "eventType": "deviceDiscovered", "address": "{0}", "name": "{1}", "cached": {2}, "valid": {3}, "rssi": {4}, "majorDeviceClass": "{5}", "minorDeviceClass": {6} }})",
+        R"({{ "eventType": "deviceDiscovered", "address": "{0}", "deviceUuid": "{7}", "name": "{1}", "cached": {2}, "valid": {3}, "rssi": {4}, "majorDeviceClass": "{5}", "minorDeviceClass": {6} }})",
         info.address().toString().toStdString(),
         info.name().toStdString(),
         cached,
         valid,
         info.rssi(),
         majorDeviceClass.toStdString(),
-        info.minorDeviceClass()
+        info.minorDeviceClass(),
+        info.deviceUuid().toString(QUuid::WithoutBraces).toStdString()
     ));
-    (*devices)[info.address().toString().toUpper()] = info;
 }
 
 void Discoverer::start()
@@ -103,30 +117,30 @@ void Discoverer::finished() {
     API::sendEvent(R"({ "eventType": "deviceScanningEnded" })");
 }
 
-void Discoverer::connect(QString address) {
-    if (!connections->contains(address)) {
-        if (!devices->contains(address)) {
-            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
-                       address.toStdString()));
+void Discoverer::connect(QString id) {
+    if (!connections->contains(id)) {
+        if (!devices->contains(id)) {
+            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
+                       id.toStdString()));
         }
         else {
-            auto info = (*devices)[address];
-            (*connections)[address] = new Connection(&info, this);
+            auto info = (*devices)[id];
+            (*connections)[id] = new Connection(&info, this);
         }
     }
     else {
-        auto connection = (*connections)[address];
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "address": "{0}" }})", address.toStdString()));
+        auto connection = (*connections)[id];
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "id": "{0}" }})", id.toStdString()));
     }
 }
 
-void Discoverer::disconnect(QString address) {
-    if (connections->contains(address)) {
-        auto connection = (*connections)[address];
-        (*connections).remove(address);
+void Discoverer::disconnect(QString id) {
+    if (connections->contains(id)) {
+        auto connection = (*connections)[id];
+        (*connections).remove(id);
         delete connection;
     } else {
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "address": "{0}" }})", address.toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "id": "{0}" }})", id.toStdString()));
     }
 }
 
@@ -134,26 +148,24 @@ void Discoverer::process(const std::string &command) {
     auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8());
     QJsonObject commandObject = commandDocument.object();
     auto commandType = commandObject["commandType"].toString();
-
-    auto address = commandObject["address"].toString().toUpper();
+    auto id = commandObject["id"].toString().toUpper();
 
     if (commandType == "connect") {
-        auto address = commandObject["address"].toString().toUpper();
-        connect(address);
+        connect(id);
     } else if (commandType == "disconnect") {
-        auto address = commandObject["address"].toString().toUpper();
-        disconnect(address);
+        disconnect(id);
     }
-    else {
+    else
+    {
         auto parameters = CommonParameters::Load(commandObject);
 
-        if (!connections->contains(address)) {
-            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
-                       address.toStdString()));
+        if (!connections->contains(id)) {
+            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
+                       id.toStdString()));
             return;
         }
 
-        auto connection = (*connections)[address];
+        auto connection = (*connections)[id];
 
         if (commandType == "reset") {
             auto force = commandObject["force"].toBool();

@@ -11,13 +11,13 @@ The executable takes no command line arguments. It immediately starts discoverin
 Once the device has been discovered, you can connect to it by sending this to stdin:
 
 ```
-{ "commandType": "connect", "address": "00:00:00:00:00:00" }
+{ "commandType": "connect", "id": "00:00:00:00:00:00" }
 ```
 
 This will result in messages like the following:
 
 ```
-{ "eventType": "connected", "address": "00:00:00:00:00:00" }
+{ "eventType": "connected", "id": "00:00:00:00:00:00" }
 { "eventType": "serviceDiscovered", "address": "00:00:00:00:00:00", "service": "8d53dc1d-1db7-4cd3-868b-8a527460aa84", "serviceDescription": "MCUMGR" }
 { "eventType": "serviceDiscoveryFinished", "address": "00:00:00:00:00:00" }
 ```
