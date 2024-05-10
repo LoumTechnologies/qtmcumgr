@@ -1,0 +1,1 @@
+{ "eventType": "deviceDiscovered", "address": "00:00:00:00:00:00", "name": "Bluetooth 00:00:00:00:00:00", "cached": true, "valid": true, "rssi": -80, "majorDeviceClass": "MiscellaneousDevice", "minorDeviceClass": 0 }
