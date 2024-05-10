@@ -842,7 +842,7 @@ void smp_group_os_mgmt::receive_ok(uint8_t version, uint8_t op, uint16_t group, 
         else if (finished_mode == MODE_RESET && command == COMMAND_RESET)
         {
             //No need to check response, it would have returned success to come through this callback
-            API::sendEvent(std::format(R"({{ "eventType": "resetCompleted", "address": "{0}" }})", this->processor->address().toStdString()));
+            API::sendEvent(std::format(R"({{ "eventType": "resetCompleted.json", "address": "{0}" }})", this->processor->address().toStdString()));
             emit status(smp_user_data, STATUS_COMPLETE, nullptr);
         }
         else if (finished_mode == MODE_MCUMGR_PARAMETERS && command == COMMAND_MCUMGR_PARAMETERS)
