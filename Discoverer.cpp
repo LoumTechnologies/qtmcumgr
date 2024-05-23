@@ -172,11 +172,11 @@ void Discoverer::handleSetImage(Connection &connection, SetImage &image) {
 }
 
 void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
-
+    connection.getImages(parameters)
 }
 
 void Discoverer::handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info) {
-    connection.bootLoaderInfo()
+    connection.bootLoaderInfo(info.getQuery());
 }
 
 void Discoverer::process(const std::string &command) {
