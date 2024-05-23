@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/SetImage",
+  "definitions": {
+    "SetImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commandType": {
+          "const": "setImage"
+        },
+        "address": {
+          "type": "string"
+        },
+        "hashString": {
+          "type": "string"
+        },
+        "confirm": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "address",
+        "commandType",
+        "confirm",
+        "hashString"
+      ],
+      "title": "SetImage"
+    }
+  }
+}

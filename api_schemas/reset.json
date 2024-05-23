@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/Reset",
+  "definitions": {
+    "Reset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commandType": {
+          "const": "reset"
+        },
+        "address": {
+          "type": "string"
+        },
+        "force": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "address",
+        "commandType",
+        "force"
+      ],
+      "title": "Reset"
+    }
+  }
+}

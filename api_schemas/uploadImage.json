@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/UploadImage",
+  "definitions": {
+    "UploadImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commandType": {
+          "const": "uploadImage"
+        },
+        "address": {
+          "type": "string"
+        },
+        "image": {
+          "type": "integer"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "upgrade": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "address",
+        "commandType",
+        "fileName",
+        "image",
+        "upgrade"
+      ],
+      "title": "UploadImage"
+    }
+  }
+}
