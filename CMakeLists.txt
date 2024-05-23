@@ -55,7 +55,27 @@ add_executable(qtmcumgr main.cpp
         API.h
         CommonParameters.cpp
         CommonParameters.h
-        json.hpp
+
+        Connect.cpp
+        Connect.h
+        Connected.cpp
+        Connected.h
+        DeviceDiscovered.cpp
+        DeviceDiscovered.h
+        Disconnect.cpp
+        Disconnect.h
+        Disconnected.cpp
+        Disconnected.h
+        GetImages.cpp
+        GetImages.h
+        Reset.cpp
+        Reset.h
+        ResetCompleted.cpp
+        ResetCompleted.h
+        ServiceDiscovered.cpp
+        ServiceDiscovered.h
+        ServiceDiscoveryFinished.cpp
+        ServiceDiscoveryFinished.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core

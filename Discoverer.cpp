@@ -17,6 +17,18 @@
 #include "smp_bluetooth.h"
 #include "CommonParameters.h"
 
+#include "Connect.h"
+#include "Connected.h"
+#include "DeviceDiscovered.h"
+#include "Disconnect.h"
+#include "Disconnected.h"
+#include "GetImages.h"
+#include "Reset.h"
+#include "ResetCompleted.h"
+#include "ServiceDiscovered.h"
+#include "ServiceDiscoveryFinished.h"
+
+
 Discoverer::Discoverer()
 {
     discoveryAgent = new QBluetoothDeviceDiscoveryAgent();
@@ -117,44 +129,60 @@ void Discoverer::finished() {
     API::sendEvent(R"({ "eventType": "deviceScanningEnded" })");
 }
 
-void Discoverer::connect(QString id) {
-    if (!connections->contains(id)) {
-        if (!devices->contains(id)) {
+void Discoverer::handleConnect(Connect &connect) {
+    if (!connections->contains(connect.getAddress())) {
+        if (!devices->contains(connect.getAddress())) {
             API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
-                       id.toStdString()));
+                                       connect.getAddress().toStdString()));
         }
         else {
-            auto info = (*devices)[id];
-            (*connections)[id] = new Connection(&info, this);
+            auto info = (*devices)[connect.getAddress()];
+            (*connections)[connect.getAddress()] = new Connection(&info, this);
         }
     }
     else {
-        auto connection = (*connections)[id];
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "id": "{0}" }})", id.toStdString()));
+        auto connection = (*connections)[connect.getAddress()];
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "id": "{0}" }})", connect.getAddress().toStdString()));
     }
 }
 
-void Discoverer::disconnect(QString id) {
-    if (connections->contains(id)) {
-        auto connection = (*connections)[id];
-        (*connections).remove(id);
+void Discoverer::handleDisconnect(Disconnect &disconnect) {
+    if (connections->contains(disconnect.getAddress())) {
+        auto connection = (*connections)[disconnect.getAddress()];
+        (*connections).remove(disconnect.getAddress());
         delete connection;
     } else {
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "id": "{0}" }})", id.toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "id": "{0}" }})", disconnect.getAddress().toStdString()));
     }
 }
 
 void Discoverer::process(const std::string &command) {
-    auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8());
-    QJsonObject commandObject = commandDocument.object();
-    auto commandType = commandObject["commandType"].toString();
-    auto id = commandObject["id"].toString().toUpper();
+    auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8()).object();
 
-    if (commandType == "connect") {
-        connect(id);
-    } else if (commandType == "disconnect") {
-        disconnect(id);
+    Connect connect;
+    if (Connect::TryLoad(commandDocument, connect)) {
+        handleConnect(connect);
+        return;
     }
+
+    Disconnect disconnect;
+    if (Disconnect::TryLoad(commandDocument, disconnect)) {
+        handleDisconnect(disconnect);
+        return;
+    }
+
+    GetImages getImages;
+    if (GetImages::TryLoad(commandDocument, getImages)) {
+        handleGetImages(getImages);
+        return;
+    }
+
+    Reset reset;
+    if (Reset::TryLoad(commandDocument, reset)) {
+        handleReset(reset);
+        return;
+    }
+
     else
     {
         auto parameters = CommonParameters::Load(commandObject);
