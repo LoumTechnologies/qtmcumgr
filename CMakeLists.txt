@@ -76,6 +76,13 @@ add_executable(qtmcumgr main.cpp
         ServiceDiscovered.h
         ServiceDiscoveryFinished.cpp
         ServiceDiscoveryFinished.h
+
+        UploadImage.cpp
+        UploadImage.h
+        SetImage.cpp
+        SetImage.h
+        BootLoaderInfo.cpp
+        BootLoaderInfo.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core
