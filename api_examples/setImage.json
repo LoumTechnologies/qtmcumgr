@@ -1,1 +1,1 @@
-{ "commandType": "setImage", "address": "00:00:00:00:00:00", "hashString": "", "confirm": true, "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 }
+{ "commandType": "setImage", "address": "00:00:00:00:00:00", "hashString": "", "confirm": true, "connectionParameters": { "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 } }
