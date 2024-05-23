@@ -172,7 +172,7 @@ void Discoverer::handleSetImage(Connection &connection, SetImage &image) {
 }
 
 void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
-    connection.getImages(parameters)
+    connection.getImages()
 }
 
 void Discoverer::handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info) {
