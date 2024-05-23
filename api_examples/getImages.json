@@ -1,1 +1,1 @@
-{ "commandType": "getImages", "address": "00:00:00:00:00:00", "connectionParameters": { "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 }}
+{ "commandType": "getImages", "address": "00:00:00:00:00:00", "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 }

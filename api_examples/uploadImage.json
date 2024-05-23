@@ -1,1 +1,1 @@
-{ "commandType": "uploadImage", "address": "00:00:00:00:00:00", "image": 0, "fileName": "", "upgrade": true, "connectionParameters": { "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 } }
+{ "commandType": "uploadImage", "address": "00:00:00:00:00:00", "image": 0, "fileName": "", "upgrade": true, "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 }
