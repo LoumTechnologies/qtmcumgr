@@ -27,6 +27,8 @@
 #include "ResetCompleted.h"
 #include "ServiceDiscovered.h"
 #include "ServiceDiscoveryFinished.h"
+#include "SetImage.h"
+#include "UploadImage.h"
 
 
 Discoverer::Discoverer()
@@ -156,6 +158,22 @@ void Discoverer::handleDisconnect(Disconnect &disconnect) {
     }
 }
 
+void Discoverer::handleReset(Connection &connection, Reset &reset) {
+    connection.reset(reset.getForce());
+}
+
+void Discoverer::handleGetImages(Connection &connection, GetImages &getImages) {
+
+}
+
+void Discoverer::handleSetImage(Connection &connection, SetImage &image) {
+
+}
+
+void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
+
+}
+
 void Discoverer::process(const std::string &command) {
     auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8()).object();
 
@@ -171,53 +189,37 @@ void Discoverer::process(const std::string &command) {
         return;
     }
 
+    auto id = commandDocument["address"].toString();
+
+    if (!connections->contains(id)) {
+        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
+                                   id.toStdString()));
+        return;
+    }
+
+    auto connection = (*connections)[id];
+
     GetImages getImages;
     if (GetImages::TryLoad(commandDocument, getImages)) {
-        handleGetImages(getImages);
+        handleGetImages(*connection, getImages);
         return;
     }
 
     Reset reset;
     if (Reset::TryLoad(commandDocument, reset)) {
-        handleReset(reset);
+        handleReset(*connection, reset);
         return;
     }
 
-    else
-    {
-        auto parameters = CommonParameters::Load(commandObject);
+    SetImage setImage;
+    if(SetImage::TryLoad(commandDocument, setImage)) {
+        handleSetImage(*connection, setImage);
+        return;
+    }
 
-        if (!connections->contains(id)) {
-            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
-                       id.toStdString()));
-            return;
-        }
-
-        auto connection = (*connections)[id];
-
-        if (commandType == "reset") {
-            auto force = commandObject["force"].toBool();
-            connection->reset(force);
-        } else if (commandType == "bootLoaderInfo") {
-            auto query = commandObject["query"].toString();
-            connection->bootLoaderInfo(query);
-        } else if (commandType == "getImages") {
-            connection->getImages(parameters);
-        } else if (commandType == "setImage") {
-            auto hashString = QByteArray::fromHex(commandObject["hashString"].toString().toLatin1());
-            auto confirm = commandObject["confirm"].toBool();
-            connection->setImage(&hashString, confirm, parameters);
-        } else if (commandType == "uploadImage") {
-            auto image = commandObject["image"].toInt();
-            auto fileName = commandObject["fileName"].toString();
-//            if (!fileName.endsWith(".bin")) {
-//                API::sendEvent(std::format("{{ \"eventType\": \"error\", \"errorType\": \"incorrectFileExtension\", \"address\": \"{0}\", \"fileName\": \"{1}\" }}\n",
-//                                           address.toStdString(),
-//                                           fileName.toStdString()));
-//                return;
-//            }
-            auto upgrade = commandObject["upgrade"].toBool();
-            connection->imageUpload(image, fileName, upgrade, parameters);
-        }
+    UploadImage uploadImage;
+    if (UploadImage::TryLoad(commandDocument, uploadImage)) {
+        handleUploadImage(*connection, uploadImage);
+        return;
     }
 }

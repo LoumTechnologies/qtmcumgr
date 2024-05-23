@@ -13,6 +13,8 @@
 #include "Disconnect.h"
 #include "GetImages.h"
 #include "Reset.h"
+#include "SetImage.h"
+#include "UploadImage.h"
 
 class Discoverer : QObject {
     Q_OBJECT
@@ -27,16 +29,17 @@ public slots:
     void deviceDiscovered(const QBluetoothDeviceInfo &info);
     void finished();
 
-    void handleConnect(Connect &connect);
-    void handleDisconnect(Disconnect &disconnect);
-    void handleGetImages(GetImages &getImages);
-    void handleReset(Reset &reset);
-
-
 private:
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
     QMap<QString, Connection*> *connections;
     QMap<QString, QBluetoothDeviceInfo> *devices;
+
+    void handleConnect(Connect &connect);
+    void handleDisconnect(Disconnect &disconnect);
+    void handleGetImages(Connection &connection, GetImages &getImages);
+    void handleReset(Connection &connection, Reset &reset);
+    void handleSetImage(Connection &connection, SetImage &image);
+    void handleUploadImage(Connection &connection, UploadImage &image);
 };
 
 
