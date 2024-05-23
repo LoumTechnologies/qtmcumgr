@@ -29,6 +29,7 @@
 #include "ServiceDiscoveryFinished.h"
 #include "SetImage.h"
 #include "UploadImage.h"
+#include "BootLoaderInfo.h"
 
 
 Discoverer::Discoverer()
@@ -174,6 +175,10 @@ void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
 
 }
 
+void Discoverer::handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info) {
+    connection.bootLoaderInfo()
+}
+
 void Discoverer::process(const std::string &command) {
     auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8()).object();
 
@@ -220,6 +225,12 @@ void Discoverer::process(const std::string &command) {
     UploadImage uploadImage;
     if (UploadImage::TryLoad(commandDocument, uploadImage)) {
         handleUploadImage(*connection, uploadImage);
+        return;
+    }
+
+    BootLoaderInfo bootLoaderInfo;
+    if (BootLoaderInfo::TryLoad(commandDocument, bootLoaderInfo)) {
+        handleBootLoaderInfo(*connection, bootLoaderInfo);
         return;
     }
 }

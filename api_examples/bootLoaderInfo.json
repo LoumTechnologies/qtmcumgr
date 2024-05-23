@@ -1,1 +1,1 @@
-{ "commandType": "bootLoaderInfo", "address": "00:00:00:00:00:00" }
+{ "commandType": "bootLoaderInfo", "address": "00:00:00:00:00:00", "query": "some query" }

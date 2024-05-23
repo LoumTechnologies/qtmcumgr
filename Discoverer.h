@@ -15,6 +15,7 @@
 #include "Reset.h"
 #include "SetImage.h"
 #include "UploadImage.h"
+#include "BootLoaderInfo.h"
 
 class Discoverer : QObject {
     Q_OBJECT
@@ -40,6 +41,7 @@ private:
     void handleReset(Connection &connection, Reset &reset);
     void handleSetImage(Connection &connection, SetImage &image);
     void handleUploadImage(Connection &connection, UploadImage &image);
+    void handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info);
 };
 
 
