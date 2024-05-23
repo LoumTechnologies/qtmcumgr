@@ -1,1 +1,1 @@
-{ "commandType": "disconnect", "address": "00:00:00:00:00:00" }
+{ "commandType": "getImages", "address": "00:00:00:00:00:00" }
