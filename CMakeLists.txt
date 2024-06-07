@@ -91,12 +91,6 @@ target_link_libraries(qtmcumgr
 
 find_package(Qt6 REQUIRED COMPONENTS Bluetooth)
 
-set(CMAKE_INSTALL_PREFIX "/Applications")
-set(CMAKE_MACOSX_BUNDLE TRUE)
-set(CMAKE_MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist")
-
-target_link_options(qtmcumgr PRIVATE LINKER:-sectcreate,__TEXT,__info_plist,${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
-
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
