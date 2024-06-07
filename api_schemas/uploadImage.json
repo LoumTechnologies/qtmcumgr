@@ -1,35 +1,43 @@
 {
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "$ref": "#/definitions/UploadImage",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "commandType": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "image": {
+      "type": "integer"
+    },
+    "fileName": {
+      "type": "string"
+    },
+    "upgrade": {
+      "type": "boolean"
+    },
+    "connectionParameters": {
+      "$ref": "#/definitions/ConnectionParameters"
+    }
+  },
   "definitions": {
-    "UploadImage": {
+    "ConnectionParameters": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "commandType": {
-          "const": "uploadImage"
-        },
-        "address": {
-          "type": "string"
-        },
-        "image": {
+        "protocolVersion": {
           "type": "integer"
         },
-        "fileName": {
-          "type": "string"
+        "mtu": {
+          "type": "integer"
         },
-        "upgrade": {
-          "type": "boolean"
+        "retries": {
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "type": "integer"
         }
-      },
-      "required": [
-        "address",
-        "commandType",
-        "fileName",
-        "image",
-        "upgrade"
-      ],
-      "title": "UploadImage"
+      }
     }
   }
 }

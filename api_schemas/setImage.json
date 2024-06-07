@@ -1,31 +1,40 @@
 {
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "$ref": "#/definitions/SetImage",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "commandType": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "hashString": {
+      "type": "string"
+    },
+    "confirm": {
+      "type": "boolean"
+    },
+    "connectionParameters": {
+      "$ref": "#/definitions/ConnectionParameters"
+    }
+  },
   "definitions": {
-    "SetImage": {
+    "ConnectionParameters": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "commandType": {
-          "const": "setImage"
+        "protocolVersion": {
+          "type": "integer"
         },
-        "address": {
-          "type": "string"
+        "mtu": {
+          "type": "integer"
         },
-        "hashString": {
-          "type": "string"
+        "retries": {
+          "type": "integer"
         },
-        "confirm": {
-          "type": "boolean"
+        "timeout_ms": {
+          "type": "integer"
         }
-      },
-      "required": [
-        "address",
-        "commandType",
-        "confirm",
-        "hashString"
-      ],
-      "title": "SetImage"
+      }
     }
   }
 }

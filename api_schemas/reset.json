@@ -1,27 +1,37 @@
 {
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "$ref": "#/definitions/Reset",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "commandType": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "force": {
+      "type": "boolean"
+    },
+    "connectionParameters": {
+      "$ref": "#/definitions/ConnectionParameters"
+    }
+  },
   "definitions": {
-    "Reset": {
+    "ConnectionParameters": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "commandType": {
-          "const": "reset"
+        "protocolVersion": {
+          "type": "integer"
         },
-        "address": {
-          "type": "string"
+        "mtu": {
+          "type": "integer"
         },
-        "force": {
-          "type": "boolean"
+        "retries": {
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "type": "integer"
         }
-      },
-      "required": [
-        "address",
-        "commandType",
-        "force"
-      ],
-      "title": "Reset"
+      }
     }
   }
 }

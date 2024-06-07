@@ -56,6 +56,8 @@ add_executable(qtmcumgr main.cpp
         CommonParameters.cpp
         CommonParameters.h
 
+        ConnectionParameters.cpp
+        ConnectionParameters.h
         Connect.cpp
         Connect.h
         Connected.cpp

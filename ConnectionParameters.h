@@ -5,6 +5,7 @@
 #include <QString>
 #include <QJsonObject>
 
+#include <optional>
 
 
 namespace qtmcumgr {
@@ -14,23 +15,34 @@ class ConnectionParameters
 {
 public:
 
-static bool TryLoad(QJsonObject &jsonObject, ConnectionParameters &result);
-void setProtocolVersion(int newValue);
-int &getProtocolVersion();
-void setMtu(int newValue);
-int &getMtu();
-void setRetries(int newValue);
-int &getRetries();
-void setTimeoutMs(int newValue);
-int &getTimeoutMs();
+    ~ConnectionParameters();
+
+    static bool TryLoad(const QJsonObject &jsonObject, ConnectionParameters &result);
+    void setProtocolVersion(int newValue);
+    int &getProtocolVersion();
+    void clearProtocolVersion();
+    bool hasProtocolVersion() const;
+    void setMtu(int newValue);
+    int &getMtu();
+    void clearMtu();
+    bool hasMtu() const;
+    void setRetries(int newValue);
+    int &getRetries();
+    void clearRetries();
+    bool hasRetries() const;
+    void setTimeoutMs(int newValue);
+    int &getTimeoutMs();
+    void clearTimeoutMs();
+    bool hasTimeoutMs() const;
 
 private:
-int _protocolVersion;
-int _mtu;
-int _retries;
-int _timeoutMs;
+    std::optional<int> _protocolVersion;
+    std::optional<int> _mtu;
+    std::optional<int> _retries;
+    std::optional<int> _timeoutMs;
 
 };
 
 
 }
+

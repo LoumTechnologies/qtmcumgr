@@ -1,1 +1,1 @@
-{ "commandType": "bootLoaderInfo", "address": "00:00:00:00:00:00", "query": "some query" }
+{ "commandType": "bootLoaderInfo", "address": "00:00:00:00:00:00", "query": "some query", "connectionParameters": { "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 } }

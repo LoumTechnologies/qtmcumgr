@@ -5,6 +5,7 @@
 #include <QString>
 #include <QJsonObject>
 
+#include <optional>
 
 
 namespace qtmcumgr {
@@ -14,23 +15,34 @@ class ServiceDiscovered
 {
 public:
 
-static bool TryLoad(QJsonObject &jsonObject, ServiceDiscovered &result);
-void setEventType(QString newValue);
-QString &getEventType();
-void setAddress(QString newValue);
-QString &getAddress();
-void setService(QString newValue);
-QString &getService();
-void setServiceDescription(QString newValue);
-QString &getServiceDescription();
+    ~ServiceDiscovered();
+
+    static bool TryLoad(const QJsonObject &jsonObject, ServiceDiscovered &result);
+    void setEventType(QString newValue);
+    QString &getEventType();
+    void clearEventType();
+    bool hasEventType() const;
+    void setAddress(QString newValue);
+    QString &getAddress();
+    void clearAddress();
+    bool hasAddress() const;
+    void setService(QString newValue);
+    QString &getService();
+    void clearService();
+    bool hasService() const;
+    void setServiceDescription(QString newValue);
+    QString &getServiceDescription();
+    void clearServiceDescription();
+    bool hasServiceDescription() const;
 
 private:
-QString _eventType;
-QString _address;
-QString _service;
-QString _serviceDescription;
+    std::optional<QString> _eventType;
+    std::optional<QString> _address;
+    std::optional<QString> _service;
+    std::optional<QString> _serviceDescription;
 
 };
 
 
 }
+

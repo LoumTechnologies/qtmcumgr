@@ -2,10 +2,16 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
-    "commandType": {
+    "eventType": {
       "type": "string"
     },
     "address": {
+      "type": "string"
+    },
+    "service": {
+      "type": "string"
+    },
+    "serviceDescription": {
       "type": "string"
     }
   }

@@ -1,1 +1,1 @@
-{ "commandType": "reset", "address": "00:00:00:00:00:00", "force": true }
+{ "commandType": "reset", "address": "00:00:00:00:00:00", "force": true, "connectionParameters": { "protocolVersion": 0, "mtu": 0, "retries": 0, "timeout_ms": 0 } }

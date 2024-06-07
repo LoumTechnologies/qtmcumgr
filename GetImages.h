@@ -5,6 +5,7 @@
 #include <QString>
 #include <QJsonObject>
 
+#include <optional>
 #include "ConnectionParameters.h"
 
 
@@ -15,17 +16,29 @@ class GetImages
 {
 public:
 
-static bool TryLoad(QJsonObject &jsonObject, GetImages &result);
-void setAddress(QString newValue);
-QString &getAddress();
-void setConnectionParameters(ConnectionParameters newValue);
-ConnectionParameters &getConnectionParameters();
+    ~GetImages();
+
+    static bool TryLoad(const QJsonObject &jsonObject, GetImages &result);
+    void setCommandType(QString newValue);
+    QString &getCommandType();
+    void clearCommandType();
+    bool hasCommandType() const;
+    void setAddress(QString newValue);
+    QString &getAddress();
+    void clearAddress();
+    bool hasAddress() const;
+    void setConnectionParameters(ConnectionParameters newValue);
+    ConnectionParameters &getConnectionParameters();
+    void clearConnectionParameters();
+    bool hasConnectionParameters() const;
 
 private:
-QString _address;
-ConnectionParameters _connectionParameters;
+    std::optional<QString> _commandType;
+    std::optional<QString> _address;
+    std::optional<ConnectionParameters> _connectionParameters;
 
 };
 
 
 }
+

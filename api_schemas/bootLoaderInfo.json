@@ -1,23 +1,37 @@
 {
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "$ref": "#/definitions/BootLoaderInfo",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "commandType": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "query": {
+      "type": "string"
+    },
+    "connectionParameters": {
+      "$ref": "#/definitions/ConnectionParameters"
+    }
+  },
   "definitions": {
-    "BootLoaderInfo": {
+    "ConnectionParameters": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "commandType": {
-          "const": "bootLoaderInfo"
+        "protocolVersion": {
+          "type": "integer"
         },
-        "address": {
-          "type": "string"
+        "mtu": {
+          "type": "integer"
+        },
+        "retries": {
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "type": "integer"
         }
-      },
-      "required": [
-        "address",
-        "commandType"
-      ],
-      "title": "BootLoaderInfo"
+      }
     }
   }
 }

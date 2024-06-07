@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "cached": {
+      "type": "boolean"
+    },
+    "valid": {
+      "type": "boolean"
+    },
+    "rssi": {
+      "type": "integer"
+    },
+    "majorDeviceClass": {
+      "type": "string"
+    },
+    "minorDeviceClass": {
+      "type": "integer"
+    }
+  }
+}

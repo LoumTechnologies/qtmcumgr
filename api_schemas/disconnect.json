@@ -1,23 +1,12 @@
 {
-  "$schema": "http://json-schema.org/draft-06/schema#",
-  "$ref": "#/definitions/Disconnect",
-  "definitions": {
-    "Disconnect": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "commandType": {
-          "const": "disconnect"
-        },
-        "address": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "address",
-        "commandType"
-      ],
-      "title": "Disconnect"
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "commandType": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
     }
   }
 }
