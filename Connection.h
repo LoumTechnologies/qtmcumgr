@@ -10,6 +10,7 @@
 #include "smp_group_array.h"
 #include "smp_processor.h"
 #include "CommonParameters.h"
+#include "ConnectionParameters.h"
 
 class Connection : QObject {
     Q_OBJECT
@@ -23,9 +24,9 @@ public:
 
     smp_group_array *smp_groups;
 
-    void getImages(CommonParameters &parameters);
-    void imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters);
-    void setImage(QByteArray *imageHash, bool confirm, CommonParameters &parameters);
+    void getImages(qtmcumgr::ConnectionParameters &parameters);
+    void imageUpload(int image, QString fileName, bool upgrade, qtmcumgr::ConnectionParameters &parameters);
+    void setImage(QByteArray *imageHash, bool confirm, qtmcumgr::ConnectionParameters &parameters);
 
 private slots:
     void status(uint8_t user_data, group_status status, QString error_string);

@@ -35,13 +35,13 @@ private:
     QMap<QString, Connection*> *connections;
     QMap<QString, QBluetoothDeviceInfo> *devices;
 
-    void handleConnect(Connect &connect);
-    void handleDisconnect(Disconnect &disconnect);
-    void handleGetImages(Connection &connection, GetImages &getImages);
-    void handleReset(Connection &connection, Reset &reset);
-    void handleSetImage(Connection &connection, SetImage &image);
-    void handleUploadImage(Connection &connection, UploadImage &image);
-    void handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info);
+    void handleConnect(qtmcumgr::Connect &connect);
+    void handleDisconnect(qtmcumgr::Disconnect &disconnect);
+    void handleGetImages(Connection &connection, qtmcumgr::GetImages &getImages);
+    void handleReset(Connection &connection, qtmcumgr::Reset &reset);
+    void handleSetImage(Connection &connection, qtmcumgr::SetImage &image);
+    void handleUploadImage(Connection &connection, qtmcumgr::UploadImage &image);
+    void handleBootLoaderInfo(Connection &connection, qtmcumgr::BootLoaderInfo &info);
 };
 
 

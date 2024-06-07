@@ -31,6 +31,7 @@
 #include "UploadImage.h"
 #include "BootLoaderInfo.h"
 
+using namespace qtmcumgr;
 
 Discoverer::Discoverer()
 {
@@ -168,11 +169,12 @@ void Discoverer::handleGetImages(Connection &connection, GetImages &getImages) {
 }
 
 void Discoverer::handleSetImage(Connection &connection, SetImage &image) {
-
+    auto hash = new QByteArray(QByteArray::fromHex(image.getHashString().toLatin1()));
+    connection.setImage(hash, image.getConfirm(), image.getConnectionParameters());
 }
 
 void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
-    connection.getImages()
+    connection.getImages(image.getConnectionParameters());
 }
 
 void Discoverer::handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info) {
