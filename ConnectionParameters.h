@@ -35,6 +35,8 @@ public:
     void clearTimeoutMs();
     bool hasTimeoutMs() const;
 
+    void setDefaults();
+
 private:
     std::optional<int> _protocolVersion;
     std::optional<int> _mtu;

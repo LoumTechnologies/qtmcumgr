@@ -211,7 +211,7 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic,QByteArray)));
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic,QByteArray)));
         //        connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor,QByteArray)), this, SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
+        //QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
 
         bluetooth_service_mcumgr->discoverDetails();
@@ -287,6 +287,10 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 
             if (!bluetooth_characteristic_transmit.isValid())
             {
+                API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "missingTxCharacteristic", "serviceUuid": "{0}", "serviceName": "{1}" }})",
+                                           svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           svcBLEService->serviceName().toStdString()
+                                       ));
                 //Missing Tx characteristic
 //                if (bDisconnectActive == false)
 //                {
@@ -452,7 +456,7 @@ void smp_bluetooth::form_connect_to_device(const QBluetoothDeviceInfo &info)
     QObject::connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
     QObject::connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()));
     QObject::connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(service_discovered(QBluetoothUuid)));
-    QObject::connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
+    //QObject::connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
     //         connect(controller, SIGNAL(connectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
 
     //     if (isRandomAddress())

@@ -12,8 +12,6 @@ namespace qtmcumgr {
 SetImage::~SetImage()
 {
 
-    delete &_connectionParameters;
-
 }
 
 bool SetImage::TryLoad(const QJsonObject &jsonObject, SetImage &result)

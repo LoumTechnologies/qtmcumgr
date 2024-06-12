@@ -137,7 +137,12 @@ bool ConnectionParameters::hasTimeoutMs() const
     return this->_timeoutMs.has_value();
 }
 
-
+    void ConnectionParameters::setDefaults() {
+        this->setMtu(256);
+        this->setRetries(3);
+        this->setTimeoutMs(3000);
+        this->setProtocolVersion(1);
+    }
 
 }
 

@@ -70,6 +70,7 @@ Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(pa
     // controller->setRemoteAddressType(QLowEnergyController::RandomAddress);
     // controller->connectToDevice();
 
+    this->address = info->address().toString();
     auto bluetooth_transport = new smp_bluetooth(parent);
     transport = bluetooth_transport;
 
@@ -91,7 +92,7 @@ Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(pa
     connect(smp_groups->fs_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
     connect(smp_groups->img_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
     connect(smp_groups->img_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
-    connect(smp_groups->img_mgmt, SIGNAL(plugin_to_hex(QByteArray*)), this, SLOT(group_to_hex(QByteArray*)));
+    //connect(smp_groups->img_mgmt, SIGNAL(plugin_to_hex(QByteArray*)), this, SLOT(group_to_hex(QByteArray*)));
     connect(smp_groups->os_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
     connect(smp_groups->os_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
     connect(smp_groups->settings_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
@@ -112,7 +113,7 @@ Connection::~Connection() {
     disconnect(smp_groups->fs_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
     disconnect(smp_groups->img_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
     disconnect(smp_groups->img_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
-    disconnect(smp_groups->img_mgmt, SIGNAL(plugin_to_hex(QByteArray*)), this, SLOT(group_to_hex(QByteArray*)));
+    //disconnect(smp_groups->img_mgmt, SIGNAL(plugin_to_hex(QByteArray*)), this, SLOT(group_to_hex(QByteArray*)));
     disconnect(smp_groups->os_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
     disconnect(smp_groups->os_mgmt, SIGNAL(progress(uint8_t,uint8_t)), this, SLOT(progress(uint8_t,uint8_t)));
     disconnect(smp_groups->settings_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
@@ -227,6 +228,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
                 QJsonObject rootObject;
                 QJsonArray imagesArray;
 
+
+
                 uint8_t i = 0;
                 while (i < images_list.length())
                 {
@@ -262,11 +265,14 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
                 }
 
                 // Convert the QJsonObject to a QByteArray
+                //rootObject.insert("eventType", "getImagesResult");
                 rootObject.insert("images", imagesArray);
+                rootObject.insert("address", this->address);
                 QJsonDocument doc(rootObject);
                 QString jsonData = doc.toJson(QJsonDocument::Compact);
+                jsonData.remove(0, 1);
 
-                API::sendEvent(std::format("{0}", jsonData.toStdString()));
+                API::sendEvent(std::format(R"({{ "eventType": "getImagesResult", {0})", jsonData.toStdString()));
             }
             else if (user_data == ACTION_IMG_IMAGE_SET)
             {

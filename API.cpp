@@ -10,5 +10,7 @@ namespace API {
     void sendEvent(std::string str) {
         std::print("{0}\n", str);
         std::flush(std::cout);
+        std::cerr << str << std::endl;
+        std::flush(std::cerr);
     }
 }

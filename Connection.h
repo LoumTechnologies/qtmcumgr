@@ -47,6 +47,7 @@ private:
     bool uart_transport_locked;
     QDateTime rtc_time_date_response;
     QByteArray imageHash;
+    QString address;
 };
 
 

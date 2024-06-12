@@ -12,8 +12,6 @@ namespace qtmcumgr {
 Reset::~Reset()
 {
 
-    delete &_connectionParameters;
-
 }
 
 bool Reset::TryLoad(const QJsonObject &jsonObject, Reset &result)

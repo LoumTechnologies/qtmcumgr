@@ -136,7 +136,7 @@ void Discoverer::finished() {
 void Discoverer::handleConnect(Connect &connect) {
     if (!connections->contains(connect.getAddress())) {
         if (!devices->contains(connect.getAddress())) {
-            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
+            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
                                        connect.getAddress().toStdString()));
         }
         else {
@@ -146,7 +146,7 @@ void Discoverer::handleConnect(Connect &connect) {
     }
     else {
         auto connection = (*connections)[connect.getAddress()];
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "id": "{0}" }})", connect.getAddress().toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "address": "{0}" }})", connect.getAddress().toStdString()));
     }
 }
 
@@ -156,7 +156,7 @@ void Discoverer::handleDisconnect(Disconnect &disconnect) {
         (*connections).remove(disconnect.getAddress());
         delete connection;
     } else {
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "id": "{0}" }})", disconnect.getAddress().toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "address": "{0}" }})", disconnect.getAddress().toStdString()));
     }
 }
 
@@ -165,7 +165,13 @@ void Discoverer::handleReset(Connection &connection, Reset &reset) {
 }
 
 void Discoverer::handleGetImages(Connection &connection, GetImages &getImages) {
-
+    if (getImages.hasConnectionParameters()) {
+        connection.getImages(getImages.getConnectionParameters());
+    }else {
+        ConnectionParameters defaults;
+        defaults.setDefaults();
+        connection.getImages(defaults);
+    }
 }
 
 void Discoverer::handleSetImage(Connection &connection, SetImage &image) {
@@ -178,61 +184,82 @@ void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
 }
 
 void Discoverer::handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info) {
-    connection.bootLoaderInfo(info.getQuery());
+    if (!info.hasQuery()) {
+        auto str = QString("");
+        connection.bootLoaderInfo(str);
+    }
+    else {
+        connection.bootLoaderInfo(info.getQuery());
+    }
 }
 
 void Discoverer::process(const std::string &command) {
     auto commandDocument = QJsonDocument::fromJson(QString(command.c_str()).toUtf8()).object();
+    auto commandType = commandDocument.value("commandType").toString();
 
-    Connect connect;
-    if (Connect::TryLoad(commandDocument, connect)) {
-        handleConnect(connect);
+    if (commandType == "connect") {
+        Connect connect;
+        if (Connect::TryLoad(commandDocument, connect)) {
+            handleConnect(connect);
+        }
         return;
     }
 
-    Disconnect disconnect;
-    if (Disconnect::TryLoad(commandDocument, disconnect)) {
-        handleDisconnect(disconnect);
+    if (commandType == "disconnect") {
+        Disconnect disconnect;
+        if (Disconnect::TryLoad(commandDocument, disconnect)) {
+            handleDisconnect(disconnect);
+        }
         return;
     }
 
     auto id = commandDocument["address"].toString();
 
     if (!connections->contains(id)) {
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "id": "{0}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
                                    id.toStdString()));
         return;
     }
 
     auto connection = (*connections)[id];
 
-    GetImages getImages;
-    if (GetImages::TryLoad(commandDocument, getImages)) {
-        handleGetImages(*connection, getImages);
+    if (commandType == "getImages") {
+        auto getImages = new GetImages();
+        if (GetImages::TryLoad(commandDocument, *getImages)) {
+            handleGetImages(*connection, *getImages);
+        }
         return;
     }
 
-    Reset reset;
-    if (Reset::TryLoad(commandDocument, reset)) {
-        handleReset(*connection, reset);
+    if (commandType == "reset") {
+        auto reset = new Reset();
+        if (Reset::TryLoad(commandDocument, *reset)) {
+            handleReset(*connection, *reset);
+        }
         return;
     }
 
-    SetImage setImage;
-    if(SetImage::TryLoad(commandDocument, setImage)) {
-        handleSetImage(*connection, setImage);
+    if(commandType == "setImage") {
+        auto setImage = new SetImage();
+        if (SetImage::TryLoad(commandDocument, *setImage)) {
+            handleSetImage(*connection, *setImage);
+        }
         return;
     }
 
-    UploadImage uploadImage;
-    if (UploadImage::TryLoad(commandDocument, uploadImage)) {
-        handleUploadImage(*connection, uploadImage);
+    if (commandType == "uploadImage") {
+        auto uploadImage = new UploadImage();
+        if (UploadImage::TryLoad(commandDocument, *uploadImage)) {
+            handleUploadImage(*connection, *uploadImage);
+        }
         return;
     }
 
-    BootLoaderInfo bootLoaderInfo;
-    if (BootLoaderInfo::TryLoad(commandDocument, bootLoaderInfo)) {
-        handleBootLoaderInfo(*connection, bootLoaderInfo);
+    if (commandType == "bootLoaderInfo") {
+        auto bootLoaderInfo = new BootLoaderInfo();
+        if (BootLoaderInfo::TryLoad(commandDocument, *bootLoaderInfo)) {
+            handleBootLoaderInfo(*connection, *bootLoaderInfo);
+        }
         return;
     }
 }

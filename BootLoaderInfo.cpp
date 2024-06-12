@@ -12,7 +12,9 @@ namespace qtmcumgr {
 BootLoaderInfo::~BootLoaderInfo()
 {
 
-    delete &_connectionParameters;
+    if (_connectionParameters.has_value()) {
+        delete &_connectionParameters;
+    }
 
 }
 

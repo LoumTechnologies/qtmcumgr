@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(qtmcumgr)
 
+set(CMAKE_PREFIX_PATH "C:\\Qt\\6.7.0\\msvc2019_64")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

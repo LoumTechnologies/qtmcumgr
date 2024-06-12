@@ -26,6 +26,13 @@ void IoThread::process()
 
         QTimer::singleShot(0, QCoreApplication::instance(), [this, input_line]()
         {
+            QString str(input_line->c_str());
+            if (str.trimmed().isEmpty()) {
+                delete input_line;
+                return;
+            }
+            std::cerr << input_line << std::endl;
+            std::flush(std::cerr);
             discoverer->process(*input_line);
             delete input_line;
         });

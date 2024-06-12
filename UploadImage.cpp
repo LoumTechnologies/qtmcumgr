@@ -12,8 +12,6 @@ namespace qtmcumgr {
 UploadImage::~UploadImage()
 {
 
-    delete &_connectionParameters;
-
 }
 
 bool UploadImage::TryLoad(const QJsonObject &jsonObject, UploadImage &result)
