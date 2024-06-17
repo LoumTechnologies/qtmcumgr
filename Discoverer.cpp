@@ -155,6 +155,7 @@ void Discoverer::handleDisconnect(Disconnect &disconnect) {
         auto connection = (*connections)[disconnect.getAddress()];
         (*connections).remove(disconnect.getAddress());
         delete connection;
+        API::sendEvent(std::format(R"({{ "eventType": "disconnected", "address": "{0}" }})", disconnect.getAddress().toStdString()));
     } else {
         API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "address": "{0}" }})", disconnect.getAddress().toStdString()));
     }
@@ -180,7 +181,9 @@ void Discoverer::handleSetImage(Connection &connection, SetImage &image) {
 }
 
 void Discoverer::handleUploadImage(Connection &connection, UploadImage &image) {
-    connection.getImages(image.getConnectionParameters());
+    API::sendEvent(std::format(R"({{ "eventType": "startUploadingFirmware", "address": "{0}" }})",
+                               image.getAddress().toStdString()));
+    connection.imageUpload(image.getImage(), image.getFileName(), image.getUpgrade(), image.getConnectionParameters());
 }
 
 void Discoverer::handleBootLoaderInfo(Connection &connection, BootLoaderInfo &info) {

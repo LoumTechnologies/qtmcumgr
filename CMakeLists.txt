@@ -52,7 +52,6 @@ add_executable(qtmcumgr main.cpp
         smp_message.h
         Connection.cpp
         Connection.h
-        API.cpp
         API.h
         CommonParameters.cpp
         CommonParameters.h
@@ -86,6 +85,8 @@ add_executable(qtmcumgr main.cpp
         SetImage.h
         BootLoaderInfo.cpp
         BootLoaderInfo.h
+        CommandEventTcpServer.cpp
+        CommandEventTcpServer.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core
