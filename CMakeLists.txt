@@ -12,81 +12,55 @@ find_package(Qt6 COMPONENTS
         Bluetooth
         REQUIRED)
 
-add_executable(qtmcumgr main.cpp
-        Discoverer.cpp
-        Discoverer.h
-        IoThread.cpp
-        IoThread.h
-        IoThreadManager.cpp
-        IoThreadManager.h
+add_executable(qtmcumgr
+        main.cpp
+
+        API.h
         crc16.cpp
         crc16.h
-        smp_group_stat_mgmt.cpp
-        smp_group_stat_mgmt.h
-        smp_group_zephyr_mgmt.cpp
-        smp_group_zephyr_mgmt.h
-        smp_bluetooth.cpp
-        smp_bluetooth.h
-        smp_error.cpp
-        smp_error.h
-        smp_group.h
-        smp_group_array.h
-        smp_group_fs_mgmt.cpp
-        smp_group_fs_mgmt.h
-        smp_group_img_mgmt.cpp
-        smp_group_img_mgmt.h
-        smp_group_os_mgmt.cpp
-        smp_group_os_mgmt.h
-        smp_group_settings_mgmt.cpp
-        smp_group_settings_mgmt.h
-        smp_group_shell_mgmt.cpp
-        smp_group_shell_mgmt.h
-        smp_processor.cpp
-        smp_processor.h
-        smp_transport.h
-        smp_uart.cpp
-        smp_uart.h
-        smp_udp.cpp
-        smp_udp.h
-        smp_message.cpp
-        smp_message.h
-        Connection.cpp
-        Connection.h
-        API.h
+
         CommonParameters.cpp
         CommonParameters.h
 
-        ConnectionParameters.cpp
-        ConnectionParameters.h
-        Connect.cpp
-        Connect.h
-        Connected.cpp
-        Connected.h
-        DeviceDiscovered.cpp
-        DeviceDiscovered.h
-        Disconnect.cpp
-        Disconnect.h
-        Disconnected.cpp
-        Disconnected.h
-        GetImages.cpp
-        GetImages.h
-        Reset.cpp
-        Reset.h
-        ResetCompleted.cpp
-        ResetCompleted.h
-        ServiceDiscovered.cpp
-        ServiceDiscovered.h
-        ServiceDiscoveryFinished.cpp
-        ServiceDiscoveryFinished.h
-
-        UploadImage.cpp
-        UploadImage.h
-        SetImage.cpp
-        SetImage.h
-        BootLoaderInfo.cpp
-        BootLoaderInfo.h
-        CommandEventTcpServer.cpp
+        smp_message.h
+        smp_processor.h
+        smp_transport.h
+        smp_uart.h
+        smp_udp.h
+        BluetoothDeviceManager.h
         CommandEventTcpServer.h
+        CommandProcessor.h
+        Connection.h
+        smp_bluetooth.h
+        smp_error.h
+        smp_group.h
+        smp_group_array.h
+        smp_group_fs_mgmt.h
+        smp_group_img_mgmt.h
+        smp_group_os_mgmt.h
+        smp_group_settings_mgmt.h
+        smp_group_shell_mgmt.h
+        smp_group_stat_mgmt.h
+        smp_group_zephyr_mgmt.h
+
+        smp_group_img_mgmt.cpp
+        smp_group_os_mgmt.cpp
+        smp_group_settings_mgmt.cpp
+        smp_group_shell_mgmt.cpp
+        smp_group_stat_mgmt.cpp
+        smp_group_zephyr_mgmt.cpp
+        smp_message.cpp
+        smp_processor.cpp
+        smp_uart.cpp
+        smp_udp.cpp
+        BluetoothDeviceManager.cpp
+        CommandEventTcpServer.cpp
+        CommandProcessor.cpp
+        Connection.cpp
+        main.cpp
+        smp_bluetooth.cpp
+        smp_error.cpp
+        smp_group_fs_mgmt.cpp
 )
 target_link_libraries(qtmcumgr
         Qt::Core

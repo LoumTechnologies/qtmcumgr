@@ -278,7 +278,7 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 //    bluetooth_window->add_debug(QString("State: ").append(QString::number(nNewState)));
 
     //Service state changed
-    if (nNewState == QLowEnergyService::RemoteServiceDiscovered)
+    if (nNewState == QLowEnergyService::RemoteService || nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
     {
         QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
         if (svcBLEService && svcBLEService->serviceUuid() == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))

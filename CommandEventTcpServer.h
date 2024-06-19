@@ -1,37 +1,36 @@
 //
-// Created by loum-technologies on 6/17/2024.
+// Created by loum-technologies on 6/19/2024.
 //
 
-#ifndef QTMCUMGR_COMMANDEVENTTCPSERVER_H
-#define QTMCUMGR_COMMANDEVENTTCPSERVER_H
+#ifndef SIMPLETCPSERVER_COMMANDEVENTTCPSERVER_H
+#define SIMPLETCPSERVER_COMMANDEVENTTCPSERVER_H
 
-
-#include <QObject>
+#include <QTcpSocket>
 #include <QTcpServer>
-#include <QMap>
-#include <QDebug>
-#include "Discoverer.h"
 
 class CommandEventTcpServer : public QTcpServer
 {
 Q_OBJECT
 
 public:
-    explicit CommandEventTcpServer(Discoverer *discoverer, QObject *parent = nullptr);
+    explicit CommandEventTcpServer(QObject *parent = nullptr);
+    bool start();
 
+    Q_SIGNALS:
+            void receiveMessageFromClient(const QString &message);
 protected:
     void incomingConnection(qintptr socketDescriptor) override;
 
 private slots:
-    void handleReadyRead();
+            void handleReadyRead();
     void removeClient();
 
 public slots:
-    void sendMessageToClient(const QString& message);
+            void sendMessageToClient(const QString& message);
 
 private:
     QMap<qintptr, QTcpSocket*> m_clients;
-    Discoverer *discoverer;
 };
 
-#endif //QTMCUMGR_COMMANDEVENTTCPSERVER_H
+
+#endif //SIMPLETCPSERVER_COMMANDEVENTTCPSERVER_H

@@ -1,18 +1,15 @@
 #include <QCoreApplication>
-#include <QHostAddress>
-#include "Discoverer.h"
-#include "IoThreadManager.h"
+#include <QtBluetooth/QBluetoothLocalDevice>
 #include "CommandEventTcpServer.h"
-#include "API.h"
-
-#include <print>
+#include "BluetoothDeviceManager.h"
+#include "CommandProcessor.h"
 #include <iostream>
 
 CommandEventTcpServer *tcpServer;
 
 namespace API {
     void sendEvent(std::string str) {
-        std::print("{0}\n", str);
+        std::cout << str << std::endl;
         std::flush(std::cout);
         std::cerr << str << std::endl;
         std::flush(std::cerr);
@@ -22,29 +19,30 @@ namespace API {
     }
 }
 
-int main(int argc, char *argv[]) {
-    QCoreApplication a(argc, argv);
-    auto discoverer = new Discoverer();
-    auto instance = new IoThreadManager(discoverer);
-    QTimer::singleShot(0, [&]() {
-        discoverer->start();
-        instance->start();
-    });
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
 
-    CommandEventTcpServer server(discoverer);
-    tcpServer = &server;
-    if (!server.listen(QHostAddress::Any, 6983)) {
-        QTextStream cerr(stderr);
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "Failed to listen on TCP port", "port": {0} }})",
-                                   "6983"));
+    // Initialize Bluetooth
+    QBluetoothLocalDevice device;
+    if (!device.isValid()) {
+        qDebug() << "Invalid local Bluetooth adapter";
         return -1;
     }
 
-    API::sendEvent(std::format(R"({{ "eventType": "listeningOnPort", "port": {0} }})",
-                               "6983"));
+    BluetoothDeviceManager deviceManager;
+    CommandEventTcpServer theTcpServer;
+    CommandProcessor processor(&deviceManager);
+    tcpServer = &theTcpServer;
+    QObject::connect(&theTcpServer, &CommandEventTcpServer::receiveMessageFromClient, &processor, &CommandProcessor::processCommand, Qt::ConnectionType::QueuedConnection);
+    if (!theTcpServer.start()) {
+        return 1;
+    }
+    deviceManager.start();
 
-    auto exitCode = QCoreApplication::exec();
-    delete instance;
-    delete discoverer;
-    return exitCode;
+    // Wait for the process to finish
+    int result = app.exec();
+    return result;
 }
+
+#include "main.moc"

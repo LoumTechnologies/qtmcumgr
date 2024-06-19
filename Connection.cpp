@@ -57,7 +57,7 @@ enum mcumgr_action_t {
     ACTION_ZEPHYR_STORAGE_ERASE,
 };
 
-Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(parent) {
+Connection::Connection(const QBluetoothDeviceInfo &info, QObject *parent) : QObject(parent) {
     // controller = QLowEnergyController::createCentral(*info);
     // //controller->setParent(this);
     //
@@ -70,7 +70,7 @@ Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(pa
     // controller->setRemoteAddressType(QLowEnergyController::RandomAddress);
     // controller->connectToDevice();
 
-    this->address = info->address().toString();
+    this->address = info.address().toString();
     auto bluetooth_transport = new smp_bluetooth(parent);
     transport = bluetooth_transport;
 
@@ -85,7 +85,7 @@ Connection::Connection(QBluetoothDeviceInfo *info, QObject *parent) : QObject(pa
     smp_groups->stat_mgmt = new smp_group_stat_mgmt(processor);
     smp_groups->zephyr_mgmt = new smp_group_zephyr_mgmt(processor);
 
-    bluetooth_transport->form_connect_to_device(*info);
+    bluetooth_transport->form_connect_to_device(info);
 
     connect(bluetooth_transport, SIGNAL(receive_waiting(smp_message*)), processor, SLOT(message_received(smp_message*)));
     connect(smp_groups->fs_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
@@ -142,18 +142,23 @@ void Connection::reset(bool force) {
     smp_groups->os_mgmt->start_reset(force);
 }
 
-void Connection::imageUpload(int image, QString fileName, bool upgrade, qtmcumgr::ConnectionParameters &parameters) {
-    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeoutMs(), ACTION_IMG_UPLOAD);
+void Connection::imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters) {
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_UPLOAD);
     smp_groups->img_mgmt->start_firmware_update(image, fileName, upgrade, &imageHash);
+    QString imageHashString = QString::fromLatin1(imageHash.toHex());
+    API::sendEvent(std::format(R"({{ "eventType": "startUploadingFirmware", "address": "{0}", "filePath": "{1}", "hash": "{2}" }})",
+                               address.toStdString(),
+                               fileName.replace("\\", "\\\\").toStdString(),
+                               imageHashString.toStdString()));
 }
 
-void Connection::getImages(qtmcumgr::ConnectionParameters &parameters) {
-    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeoutMs(), ACTION_IMG_IMAGE_LIST);
+void Connection::getImages(CommonParameters &parameters) {
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_LIST);
     smp_groups->img_mgmt->start_image_get(&images_list);
 }
 
-void Connection::setImage(QByteArray *imageHash, bool confirm, qtmcumgr::ConnectionParameters &parameters) {
-    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeoutMs(), ACTION_IMG_IMAGE_SET);
+void Connection::setImage(QByteArray *imageHash, bool confirm, CommonParameters &parameters) {
+    smp_groups->img_mgmt->set_parameters(parameters.getProtocolVersion(), parameters.getMtu(), parameters.getRetries(), parameters.getTimeout_ms(), ACTION_IMG_IMAGE_SET);
     smp_groups->img_mgmt->start_image_set(imageHash, confirm, &images_list);
 }
 
@@ -163,11 +168,11 @@ void Connection::bootLoaderInfo(QString &query) {
 
 void Connection::status(uint8_t user_data, group_status status, QString error_string)
 {
-       /*
-     *     STATUS_COMPLETE = 0,
-    STATUS_ERROR,
-    STATUS_TIMEOUT,
-    STATUS_CANCELLED
+    /*
+  *     STATUS_COMPLETE = 0,
+ STATUS_ERROR,
+ STATUS_TIMEOUT,
+ STATUS_CANCELLED
 */
 
     // QLabel *label_status = nullptr;
@@ -176,7 +181,13 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
     // log_debug() << "Status: " << status;
 
     if (status == STATUS_ERROR) {
-        API::sendEvent(R"({ "eventType": "error" })");
+        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}" }})",
+                                   ((smp_bluetooth*)this->transport)->address().toStdString()));
+    }
+
+    if (status == STATUS_TIMEOUT) {
+        API::sendEvent(std::format(R"({{ "eventType": "timeout", "address": "{0}" }})",
+                                   ((smp_bluetooth*)this->transport)->address().toStdString()));
     }
 
     if (sender() == smp_groups->img_mgmt)
@@ -191,6 +202,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             //Advance to next stage of image upload
             if (user_data == ACTION_IMG_UPLOAD)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "imageUploadCompleted", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
 //                 log_debug() << "is upload";
 //
 //                 if (radio_IMG_Test->isChecked() || radio_IMG_Confirm->isChecked())
@@ -209,6 +222,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_IMG_UPLOAD_SET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "imageUploadSetResult", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
 //                 if (check_IMG_Reset->isChecked())
 //                 {
 //                     //Reboot device
@@ -276,6 +291,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_IMG_IMAGE_SET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "setImage", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
                 // if (parent_row != -1 && parent_column != -1 && child_row != -1 && child_column != -1)
                 // {
                 //     uint8_t i = 0;
@@ -315,6 +332,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             //Advance to next stage of image upload, this is likely to occur in MCUboot serial recovery whereby the image state functionality is not included
             if (user_data == ACTION_IMG_UPLOAD_SET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "uploadAndSetImage", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
                 // if (check_IMG_Reset->isChecked())
                 // {
                 //     //Reboot device
@@ -342,17 +361,25 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
 
             if (user_data == ACTION_OS_ECHO)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osEcho", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
                 // edit_OS_Echo_Output->appendPlainText(error_string);
                 error_string = nullptr;
             }
             else if (user_data == ACTION_OS_UPLOAD_RESET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osUploadReset", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
             }
             else if (user_data == ACTION_OS_RESET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osReset", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
             }
             else if (user_data == ACTION_OS_MEMORY_POOL)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osMemoryPool", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
                 // uint16_t i = 0;
                 // uint16_t l = table_OS_Memory->rowCount();
                 //
@@ -395,6 +422,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_OS_TASK_STATS)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osTaskStats", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
                 // uint16_t i = 0;
                 // uint16_t l = table_OS_Tasks->rowCount();
                 //
@@ -449,12 +478,17 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_OS_MCUMGR_BUFFER)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osMcuMgrBuffer", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
                 // edit_OS_Info_Output->clear();
                 // edit_OS_Info_Output->appendPlainText(error_string);
                 error_string = nullptr;
             }
             else if (user_data == ACTION_OS_OS_APPLICATION_INFO)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osApplicationInfo", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
+
                 // edit_OS_Info_Output->clear();
                 // edit_OS_Info_Output->appendPlainText(error_string);
                 error_string = nullptr;
@@ -513,6 +547,9 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_OS_DATETIME_GET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "osDateTime", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
+
                 // int index;
                 // log_debug() << "RTC response: " << rtc_time_date_response;
                 //
@@ -528,6 +565,8 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_OS_DATETIME_SET)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "setOSDateTime", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
             }
         }
     }
@@ -542,6 +581,9 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
 
             if (user_data == ACTION_SHELL_EXECUTE)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "shellExecute", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
+
                 // edit_SHELL_Output->add_dat_in_text(error_string.toUtf8());
                 //
                 // if (shell_rc == 0)
@@ -566,6 +608,9 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
 
             if (user_data == ACTION_STAT_GROUP_DATA)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "statGroupData", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
+
                 // uint16_t i = 0;
                 // uint16_t l = table_STAT_Values->rowCount();
                 //
@@ -603,6 +648,9 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
             }
             else if (user_data == ACTION_STAT_LIST_GROUPS)
             {
+                API::sendEvent(std::format(R"({{ "eventType": "actionStateListGroups", "address": "{0}" }})",
+                                           ((smp_bluetooth*)this->transport)->address().toStdString()));
+
                 // combo_STAT_Group->clear();
                 // combo_STAT_Group->addItems(group_list);
             }
@@ -725,6 +773,10 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
 void Connection::progress(uint8_t user_data, uint8_t percent)
 {
     Q_UNUSED(user_data);
+
+    API::sendEvent(std::format(R"({{ "eventType": "progress", "percent": {0}, "address": "{1}" }})",
+                               percent,
+                               ((smp_bluetooth*)this->transport)->address().toStdString()));
 
     // log_debug() << "Progress " << percent << " from " << this->sender();
     //

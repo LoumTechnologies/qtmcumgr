@@ -4,6 +4,13 @@
 
 #include "CommonParameters.h"
 
+CommonParameters::CommonParameters() {
+    protocolVersion = 1;
+    mtu = 256;
+    retries = 3;
+    timeout_ms = 3000;
+}
+
 CommonParameters CommonParameters::Load(QJsonObject &json) {
     auto result = CommonParameters();
     if (!json["protocolVersion"].isDouble()) {

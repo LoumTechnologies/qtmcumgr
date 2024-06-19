@@ -10,6 +10,7 @@
 
 class CommonParameters {
 public:
+    CommonParameters();
     static CommonParameters Load(QJsonObject &json);
 
     int getProtocolVersion();
