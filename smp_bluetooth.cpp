@@ -400,7 +400,31 @@ int smp_bluetooth::send(smp_message *message)
                                    address().toStdString(),
                                    bluetooth_characteristic_transmit.uuid().toString(QUuid::WithoutBraces).toStdString(),
                                    bluetooth_characteristic_transmit.name().toStdString()));
-        return 0;
+
+
+        if (bluetooth_service_mcumgr != nullptr) {
+            bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+
+            QTimer::singleShot(0, QCoreApplication::instance(), [this]()
+            {
+                bluetooth_service_mcumgr->discoverDetails();
+            });
+
+            for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
+                API::sendEvent(std::format(R"({{ "eventType": "foundCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
+                                           address().toStdString(),
+                                           item.uuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           item.name().toStdString()));
+                if (item.uuid() == QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48"))) {
+                    bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+                }
+            }
+        }
+
+        if (!bluetooth_characteristic_transmit.isValid())
+        {
+            return 0;
+        }
     }
 
 
