@@ -278,7 +278,8 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 //    bluetooth_window->add_debug(QString("State: ").append(QString::number(nNewState)));
 
     //Service state changed
-    if (nNewState == QLowEnergyService::RemoteService || nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
+    // Don't do QLowEnergyService::RemoteService here. That is broken on Windows 11.
+    if (nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
     {
         QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
         if (svcBLEService && svcBLEService->serviceUuid() == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
@@ -370,7 +371,35 @@ int smp_bluetooth::send(smp_message *message)
 
     if (!bluetooth_characteristic_transmit.isValid())
     {
-        API::sendEvent(std::format(R"({{ "eventType": "invalidCharacteristic", "address": "{0}" }})", address().toStdString()));
+        if (bluetooth_service_mcumgr != nullptr) {
+            bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+
+            QTimer::singleShot(0, QCoreApplication::instance(), [this]()
+            {
+                bluetooth_service_mcumgr->discoverDetails();
+            });
+
+            for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
+                API::sendEvent(std::format(R"({{ "eventType": "foundCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
+                                           address().toStdString(),
+                                           item.uuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           item.name().toStdString()));
+                if (item.uuid() == QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48"))) {
+                    bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+                }
+            }
+        }
+        else {
+            return 0;
+        }
+    }
+
+    if (!bluetooth_characteristic_transmit.isValid())
+    {
+        API::sendEvent(std::format(R"({{ "eventType": "invalidCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
+                                   address().toStdString(),
+                                   bluetooth_characteristic_transmit.uuid().toString(QUuid::WithoutBraces).toStdString(),
+                                   bluetooth_characteristic_transmit.name().toStdString()));
         return 0;
     }
 
