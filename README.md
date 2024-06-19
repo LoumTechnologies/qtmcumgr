@@ -36,3 +36,18 @@ This results in the following output:
 ```
 
 (The disconnect happens because the device was reset; normally the disconnect doesn't happen after every command.)
+
+## Installing
+
+This requires the following DLLs:
+
+- Qt6Network.dll
+- Qt6Bluetooth.dll
+- Qt6Core.dll
+
+Or for the debug build:
+
+- Qt6Networkd.dll
+- Qt6Bluetoothd.dll
+- Qt6Cored.dll
+
