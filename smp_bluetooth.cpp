@@ -288,7 +288,7 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 
             if (!bluetooth_characteristic_transmit.isValid())
             {
-                API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "missingTxCharacteristic", "serviceUuid": "{0}", "serviceName": "{1}" }})",
+                API::sendEvent(std::format(R"({{ "eventType": "error", "description": "missingTxCharacteristic", "serviceUuid": "{0}", "serviceName": "{1}" }})",
                                            svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
                                            svcBLEService->serviceName().toStdString()
                                        ));
@@ -336,7 +336,7 @@ void smp_bluetooth::errorz(QLowEnergyController::Error error)
     else if (error == QLowEnergyController::Error::MissingPermissionsError) errorString = "MissingPermissionsError";
     else if (error == QLowEnergyController::Error::RssiReadError) errorString = "RssiReadError";
     else errorString = "UnlistedError";
-    API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "{0}", "address": "{1}" }})",
+    API::sendEvent(std::format(R"({{ "eventType": "error", "description": "{0}", "address": "{1}" }})",
         errorString.toStdString(),
         controller->remoteAddress().toString().toStdString()
     ));

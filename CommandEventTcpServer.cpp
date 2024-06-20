@@ -12,7 +12,7 @@ CommandEventTcpServer::CommandEventTcpServer(QObject *parent)
 
 bool CommandEventTcpServer::start() {
     if (!this->listen(QHostAddress::Any, 6983)) {
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "Failed to listen on TCP port", "port": {0} }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "description": "Failed to listen on TCP port", "port": {0} }})",
                                    "6983"));
         return false;
     }

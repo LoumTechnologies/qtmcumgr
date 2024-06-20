@@ -138,7 +138,7 @@ void BluetoothDeviceManager::onDeviceDiscoveryError(QBluetoothDeviceDiscoveryAge
 void BluetoothDeviceManager::connect(QString &address) {
     if (!connections.contains(address)) {
         if (!devices.contains(address)) {
-            API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
+            API::sendEvent(std::format(R"({{ "eventType": "error", "description": "deviceNotYetDiscovered", "address": "{0}" }})",
                                        address.toStdString()));
         }
         else {
@@ -165,7 +165,7 @@ void BluetoothDeviceManager::disconnect(QString &address) {
 
 void BluetoothDeviceManager::getImages(QString &address, CommonParameters &parameters) {
     if (!connections.contains(address)) {
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "description": "deviceNotYetDiscovered", "address": "{0}" }})",
                                    address.toStdString()));
         return;
     }
@@ -175,7 +175,7 @@ void BluetoothDeviceManager::getImages(QString &address, CommonParameters &param
 
 void BluetoothDeviceManager::reset(QString &address, bool force) {
     if (!connections.contains(address)) {
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "description": "deviceNotYetDiscovered", "address": "{0}" }})",
                                    address.toStdString()));
         return;
     }
@@ -185,7 +185,7 @@ void BluetoothDeviceManager::reset(QString &address, bool force) {
 
 void BluetoothDeviceManager::setImage(QString &address, QString &hashString, bool confirm, CommonParameters &commonParameters) {
     if (!connections.contains(address)) {
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "description": "deviceNotYetDiscovered", "address": "{0}" }})",
                                    address.toStdString()));
         return;
     }
@@ -196,7 +196,7 @@ void BluetoothDeviceManager::setImage(QString &address, QString &hashString, boo
 void BluetoothDeviceManager::uploadImage(QString &address, int image, QString &fileName, bool upgrade,
                                          CommonParameters commonParameters) {
     if (!connections.contains(address)) {
-        API::sendEvent(std::format(R"({{ "eventType": "error", "errorType": "deviceNotYetDiscovered", "address": "{0}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "description": "deviceNotYetDiscovered", "address": "{0}" }})",
                                    address.toStdString()));
         return;
     }
