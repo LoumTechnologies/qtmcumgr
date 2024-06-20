@@ -294,12 +294,6 @@ QString smp_bluetooth::address() {
 void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState nNewState) {
 //    bluetooth_window->add_debug(QString("State: ").append(QString::number(nNewState)));
 
-    //Service state changed
-    // Don't do QLowEnergyService::RemoteService here. That is broken on Windows 11.
-//    if (nNewState == QLowEnergyService::RemoteService) {
-//        int a = 3;
-//    }
-
     QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
 
     QString newStateString;
@@ -343,7 +337,7 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
                          SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)), Qt::QueuedConnection);
 
-        QTimer::singleShot(150, QCoreApplication::instance(), [this]()
+        QTimer::singleShot(500, QCoreApplication::instance(), [this]()
         {
             if (bluetooth_service_mcumgr != nullptr) {
                 bluetooth_service_mcumgr->discoverDetails();
