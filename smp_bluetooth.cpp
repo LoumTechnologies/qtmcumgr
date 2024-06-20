@@ -203,20 +203,20 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
     if (service_uuid == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
     {
         if (bluetooth_service_mcumgr == nullptr) {
-            bluetooth_service_mcumgr = controller->createServiceObject(service_uuid);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
-                             this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
-                             this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
-                             SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
-                             SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
-                             SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)), Qt::QueuedConnection);
-
-            QTimer::singleShot(150, QCoreApplication::instance(), [this]()
+            QTimer::singleShot(500, QCoreApplication::instance(), [service_uuid, this]()
             {
+                bluetooth_service_mcumgr = controller->createServiceObject(service_uuid);
+                QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
+                                 this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
+                QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
+                                 this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
+                QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
+                                 SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)), Qt::QueuedConnection);
+                QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
+                                 SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)), Qt::QueuedConnection);
+                QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
+                                 SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)), Qt::QueuedConnection);
+
                 if (bluetooth_service_mcumgr != nullptr) {
                     bluetooth_service_mcumgr->discoverDetails();
                 }
