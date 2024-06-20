@@ -203,3 +203,13 @@ void BluetoothDeviceManager::uploadImage(QString &address, int image, QString &f
     auto connection = connections[address];
     connection->imageUpload(image, fileName, upgrade, commonParameters);
 }
+
+void BluetoothDeviceManager::rediscoverCharacteristics(QString &address) {
+    if (!connections.contains(address)) {
+        API::sendEvent(std::format(R"({{ "eventType": "error", "description": "deviceNotYetDiscovered", "address": "{0}" }})",
+                                   address.toStdString()));
+        return;
+    }
+    auto connection = connections[address];
+    connection->rediscoverCharacteristics();
+}

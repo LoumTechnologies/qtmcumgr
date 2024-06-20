@@ -26,6 +26,7 @@ public:
     void getImages(CommonParameters &parameters);
     void imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters);
     void setImage(QByteArray *imageHash, bool confirm, CommonParameters &parameters);
+    void rediscoverCharacteristics();
 
 private slots:
     void status(uint8_t user_data, group_status status, QString error_string);

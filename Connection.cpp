@@ -138,6 +138,10 @@ Connection::~Connection() {
     delete transport;
 }
 
+void Connection::rediscoverCharacteristics() {
+    ((smp_bluetooth*)this->transport)->rediscoverCharacteristics();
+}
+
 void Connection::reset(bool force) {
     smp_groups->os_mgmt->start_reset(force);
 }

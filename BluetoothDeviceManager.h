@@ -26,6 +26,7 @@ public:
     void uploadImage(QString &address, int image, QString &fileName, bool upgrade, CommonParameters commonParameters);
     void setImage(QString &address, QString &hashString, bool confirm, CommonParameters &commonParameters);
     void reset(QString &address, bool force);
+    void rediscoverCharacteristics(QString &address);
 
 private:
     void onDeviceDiscovered(const QBluetoothDeviceInfo &info);

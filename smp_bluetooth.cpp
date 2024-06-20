@@ -600,3 +600,22 @@ void smp_bluetooth::close_connect_dialog()
 //        bluetooth_window->close();
 //    }
 }
+
+void smp_bluetooth::rediscoverCharacteristics() {
+    if (bluetooth_service_mcumgr != nullptr) {
+        bluetooth_service_mcumgr->discoverDetails();
+
+        QTimer::singleShot(500, QCoreApplication::instance(), [this]()
+        {
+            for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
+                API::sendEvent(std::format(R"({{ "eventType": "foundCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
+                                           address().toStdString(),
+                                           item.uuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           item.name().toStdString()));
+                if (item.uuid() == QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48"))) {
+                    bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+                }
+            }
+        });
+    }
+}

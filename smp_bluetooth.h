@@ -49,6 +49,7 @@ public:
     int send(smp_message *message);
     void close_connect_dialog();
     QString address() override;
+    void rediscoverCharacteristics();
 
 private:
     void form_min_params();
