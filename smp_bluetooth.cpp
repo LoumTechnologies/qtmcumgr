@@ -32,6 +32,8 @@
 #include <QTimer>
 #include <print>
 #include <QCoreApplication>
+#include <QByteArray>
+#include <QAbstractSocket>
 
 //Aim for a connection interval of between 7.5us-30us with a 4 second supervision timeout
 const double connection_interval_min = 7.5;
@@ -64,6 +66,7 @@ smp_bluetooth::smp_bluetooth(QObject *parent)
     discover_timer.setInterval(3000);
     discover_timer.setSingleShot(true);
 
+    isWaitingToDiscoverDetails = false;
     mtu_max_worked = 0;
 }
 /*
@@ -170,6 +173,9 @@ void smp_bluetooth::disconnected()
 void smp_bluetooth::discovery_finished()
 {
     API::sendEvent(std::format(R"({{ "eventType": "serviceDiscoveryFinished", "address": "{0}" }})", controller->remoteAddress().toString().toStdString()));
+
+    attemptToDiscoverCharacteristics();
+
 //    bluetooth_window->add_debug("Service scan finished.");
     //bluetooth_service_mcumgr = controller->createServiceObject(QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")));
 
@@ -202,26 +208,7 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
 
     if (service_uuid == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
     {
-        if (bluetooth_service_mcumgr == nullptr) {
-            QTimer::singleShot(500, QCoreApplication::instance(), [service_uuid, this]()
-            {
-                bluetooth_service_mcumgr = controller->createServiceObject(service_uuid);
-                QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
-                                 this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
-                QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
-                                 this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
-                QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
-                                 SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)), Qt::QueuedConnection);
-                QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
-                                 SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)), Qt::QueuedConnection);
-                QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
-                                 SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)), Qt::QueuedConnection);
-
-                if (bluetooth_service_mcumgr != nullptr) {
-                    bluetooth_service_mcumgr->discoverDetails();
-                }
-            });
-        }
+        attemptToDiscoverCharacteristics();
 
         API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
                                    controller->remoteAddress().toString().toStdString(),
@@ -233,6 +220,69 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
                                    controller->remoteAddress().toString().toStdString(),
                                    service_uuid.toString(QUuid::WithoutBraces).toStdString()
         ));
+    }
+}
+
+void smp_bluetooth::attemptToDiscoverCharacteristics() {
+    if (!isWaitingToDiscoverDetails) {
+        isWaitingToDiscoverDetails = true;
+        QTimer::singleShot(2500, QCoreApplication::instance(), [this]()
+        {
+            bluetooth_service_mcumgr = controller->createServiceObject(QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")));
+
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
+                             this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
+                             this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
+                             SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)), Qt::QueuedConnection);
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
+                             SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)), Qt::QueuedConnection);
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
+                             SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)), Qt::QueuedConnection);
+
+            for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
+                API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}" }})",
+                                           controller->remoteAddress().toString().toStdString(),
+                                           bluetooth_service_mcumgr->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           item.uuid().toString(QUuid::WithoutBraces).toStdString()
+                ));
+            }
+
+            bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+
+            if (!bluetooth_characteristic_transmit.isValid())
+            {
+                API::sendEvent(std::format(R"({{ "eventType": "error", "description": "missingTxCharacteristic", "serviceUuid": "{0}", "serviceName": "{1}" }})",
+                                           bluetooth_service_mcumgr->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           bluetooth_service_mcumgr->serviceName().toStdString()
+                ));
+                //Missing Tx characteristic
+//                if (bDisconnectActive == false)
+//                {
+//                    bDisconnectActive = true;
+//                    lecBLEController->disconnectFromDevice();
+//                }
+//                bluetooth_window->add_debug("TX not valid");
+            }
+
+            //Tx notifications descriptor
+            const QLowEnergyDescriptor descTXDesc = bluetooth_characteristic_transmit.descriptor(QBluetoothUuid::DescriptorType::ClientCharacteristicConfiguration);
+
+            if (!descTXDesc.isValid())
+            {
+
+            }
+
+            //Enable Tx descriptor notifications
+            bluetooth_service_mcumgr->writeDescriptor(descTXDesc, QByteArray::fromHex("0100"));
+
+            if (bluetooth_service_mcumgr != nullptr) {
+                bluetooth_service_mcumgr->discoverDetails();
+            }
+
+            isWaitingToDiscoverDetails = false;
+        });
     }
 }
 
@@ -292,8 +342,6 @@ QString smp_bluetooth::address() {
 }
 
 void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState nNewState) {
-//    bluetooth_window->add_debug(QString("State: ").append(QString::number(nNewState)));
-
     QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
 
     QString newStateString;
@@ -322,77 +370,11 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
             newStateString.toStdString()
     ));
 
-    if (svcBLEService &&
-        svcBLEService->serviceUuid() == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84"))
-        && bluetooth_service_mcumgr == nullptr) {
-        QTimer::singleShot(500, QCoreApplication::instance(), [this, svcBLEService]()
-        {
-            bluetooth_service_mcumgr = svcBLEService;//controller->createServiceObject(svcBLEService);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
-                             this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
-                             this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
-                             SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
-                             SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)), Qt::QueuedConnection);
-            QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
-                             SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)), Qt::QueuedConnection);
+    attemptToDiscoverCharacteristics();
 
-            if (bluetooth_service_mcumgr != nullptr) {
-                bluetooth_service_mcumgr->discoverDetails();
-            }
-        });
-    }
-
-    if (nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
-    {
-        QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
-        if (svcBLEService && svcBLEService->serviceUuid() == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
-        {
-            for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
-                API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}" }})",
-                                           controller->remoteAddress().toString().toStdString(),
-                                           svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
-                                           item.uuid().toString(QUuid::WithoutBraces).toStdString()
-                ));
-            }
-
-            bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
-
-            if (!bluetooth_characteristic_transmit.isValid())
-            {
-                API::sendEvent(std::format(R"({{ "eventType": "error", "description": "missingTxCharacteristic", "serviceUuid": "{0}", "serviceName": "{1}" }})",
-                                           svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
-                                           svcBLEService->serviceName().toStdString()
-                                       ));
-                //Missing Tx characteristic
-//                if (bDisconnectActive == false)
-//                {
-//                    bDisconnectActive = true;
-//                    lecBLEController->disconnectFromDevice();
-//                }
-//                bluetooth_window->add_debug("TX not valid");
-            }
-
-            //Tx notifications descriptor
-            const QLowEnergyDescriptor descTXDesc = bluetooth_characteristic_transmit.descriptor(QBluetoothUuid::DescriptorType::ClientCharacteristicConfiguration);
-
-            if (!descTXDesc.isValid())
-            {
-                //Tx descriptor missing
-//                if (bDisconnectActive == false)
-//                {
-//                    bDisconnectActive = true;
-//                    lecBLEController->disconnectFromDevice();
-//                }
-//                bluetooth_window->add_debug("tx DESC not valid");
-            }
-
-            //Enable Tx descriptor notifications
-            bluetooth_service_mcumgr->writeDescriptor(descTXDesc, QByteArray::fromHex("0100"));
-        }
-    }
+//    if (nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
+//    {
+//    }
 }
 
 void smp_bluetooth::errorz(QLowEnergyController::Error error)
@@ -652,22 +634,22 @@ void smp_bluetooth::close_connect_dialog()
 }
 
 void smp_bluetooth::rediscoverCharacteristics() {
-    if (bluetooth_service_mcumgr != nullptr) {
-        bluetooth_service_mcumgr->discoverDetails();
-
-        QTimer::singleShot(500, QCoreApplication::instance(), [this]()
-        {
-            if (bluetooth_service_mcumgr != nullptr) {
-                for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
-                    API::sendEvent(std::format(R"({{ "eventType": "foundCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
-                                               address().toStdString(),
-                                               item.uuid().toString(QUuid::WithoutBraces).toStdString(),
-                                               item.name().toStdString()));
-                    if (item.uuid() == QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48"))) {
-                        bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
-                    }
-                }
-            }
-        });
-    }
+//    if (bluetooth_service_mcumgr != nullptr) {
+//        bluetooth_service_mcumgr->discoverDetails();
+//
+//        QTimer::singleShot(500, QCoreApplication::instance(), [this]()
+//        {
+//            if (bluetooth_service_mcumgr != nullptr) {
+//                for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
+//                    API::sendEvent(std::format(R"({{ "eventType": "foundCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
+//                                               address().toStdString(),
+//                                               item.uuid().toString(QUuid::WithoutBraces).toStdString(),
+//                                               item.name().toStdString()));
+//                    if (item.uuid() == QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48"))) {
+//                        bluetooth_characteristic_transmit = bluetooth_service_mcumgr->characteristic(QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48")));
+//                    }
+//                }
+//            }
+//        });
+//    }
 }

@@ -101,6 +101,9 @@ private:
     QTimer retry_timer;
     QTimer discover_timer;
     int retry_count;
+    bool isWaitingToDiscoverDetails;
+
+    void attemptToDiscoverCharacteristics();
 };
 
 #endif // SMP_BLUETOOTH_H
