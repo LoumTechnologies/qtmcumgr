@@ -186,7 +186,7 @@ void Connection::status(uint8_t user_data, group_status status, QString error_st
     }
 
     if (status == STATUS_TIMEOUT) {
-        API::sendEvent(std::format(R"({{ "eventType": "timeout", "address": "{0}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}", "description": "timeout" }})",
                                    ((smp_bluetooth*)this->transport)->address().toStdString()));
     }
 

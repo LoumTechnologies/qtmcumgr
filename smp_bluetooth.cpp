@@ -202,10 +202,6 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
 
     if (service_uuid == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
     {
-        API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
-            controller->remoteAddress().toString().toStdString(),
-            service_uuid.toString(QUuid::WithoutBraces).toStdString()
-        ));
         bluetooth_service_mcumgr = controller->createServiceObject(service_uuid);
 
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic,QByteArray)));
@@ -215,6 +211,11 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
 
         bluetooth_service_mcumgr->discoverDetails();
+
+        API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
+                                   controller->remoteAddress().toString().toStdString(),
+                                   service_uuid.toString(QUuid::WithoutBraces).toStdString()
+        ));
     }
 }
 
@@ -279,6 +280,9 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 
     //Service state changed
     // Don't do QLowEnergyService::RemoteService here. That is broken on Windows 11.
+    if (nNewState == QLowEnergyService::RemoteService) {
+        int a = 3;
+    }
     if (nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
     {
         QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
@@ -299,6 +303,13 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 //                    lecBLEController->disconnectFromDevice();
 //                }
 //                bluetooth_window->add_debug("TX not valid");
+            }
+            else {
+                API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}" }})",
+                                           controller->remoteAddress().toString().toStdString(),
+                                           svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+                                           bluetooth_characteristic_transmit.uuid().toString(QUuid::WithoutBraces).toStdString()
+                ));
             }
 
             //Tx notifications descriptor
@@ -396,7 +407,7 @@ int smp_bluetooth::send(smp_message *message)
 
     if (!bluetooth_characteristic_transmit.isValid())
     {
-        API::sendEvent(std::format(R"({{ "eventType": "invalidCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}", "description": "invalidCharacteristic", "characteristic": "{1}", "characteristicName": "{2}" }})",
                                    address().toStdString(),
                                    bluetooth_characteristic_transmit.uuid().toString(QUuid::WithoutBraces).toStdString(),
                                    bluetooth_characteristic_transmit.name().toStdString()));
