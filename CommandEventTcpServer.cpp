@@ -32,6 +32,7 @@ void CommandEventTcpServer::handleReadyRead() {
     QTcpSocket *socket = static_cast<QTcpSocket*>(sender());
     QByteArray data = socket->readAll();
     auto command = QString::fromLatin1(data);
+    API::sendEvent(command.toStdString());
     receiveMessageFromClient(command);
 }
 
