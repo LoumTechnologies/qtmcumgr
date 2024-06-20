@@ -181,11 +181,11 @@ void smp_bluetooth::discovery_finished()
     else
     {
         //Connect MCUmgr server signals
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor,QByteArray)), this, SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
+//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic,QByteArray)));
+//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic,QByteArray)));
+//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor,QByteArray)), this, SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor,QByteArray)));
+//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
+//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
 //
 //        //Request minimum connection interval
 //        form_min_params();
@@ -222,7 +222,7 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
             API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}" }})",
                                        controller->remoteAddress().toString().toStdString(),
                                        service_uuid.toString(QUuid::WithoutBraces).toStdString(),
-                                       bluetooth_characteristic_transmit.uuid().toString(QUuid::WithoutBraces).toStdString()
+                                       item.uuid().toString(QUuid::WithoutBraces).toStdString()
             ));
         }
 
@@ -310,7 +310,7 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
                 API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}" }})",
                                            controller->remoteAddress().toString().toStdString(),
                                            svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
-                                           bluetooth_characteristic_transmit.uuid().toString(QUuid::WithoutBraces).toStdString()
+                                           item.uuid().toString(QUuid::WithoutBraces).toStdString()
                 ));
             }
 
