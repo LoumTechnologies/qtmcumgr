@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QCryptographicHash>
 #include "smp_message.h"
+#include "API.h"
 #include <iostream>
 #include <print>
 
@@ -923,8 +924,14 @@ void smp_group_img_mgmt::receive_error(uint8_t version, uint8_t op, uint16_t gro
     }
     else if (command == COMMAND_UPLOAD && mode == MODE_UPLOAD_FIRMWARE)
     {
+        auto error_string = smp_error::error_lookup_string(&error);
+        auto group_status = status_error_return(error);
+        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}", "groupStatus": {1}, "description": {2} }})",
+                                   processor->address().toStdString(),
+                                   (int)group_status,
+                                   error_string.toStdString()));
         //TODO
-        emit status(smp_user_data, status_error_return(error), smp_error::error_lookup_string(&error));
+        emit status(smp_user_data, group_status, error_string);
     }
     else if (command == COMMAND_ERASE && mode == MODE_ERASE_IMAGE)
     {

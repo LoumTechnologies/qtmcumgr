@@ -23,6 +23,7 @@
 #include "smp_error.h"
 #include <QStringList>
 #include "smp_group.h"
+#include "API.h"
 
 static QList<smp_error_lookup_list_t> lookup_functions;
 static QStringList smp_error_defines = QStringList() <<
