@@ -210,22 +210,15 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
         QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
 
-        bluetooth_service_mcumgr->discoverDetails();
+        QTimer::singleShot(150, QCoreApplication::instance(), [this]()
+        {
+            bluetooth_service_mcumgr->discoverDetails();
+        });
 
         API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
                                    controller->remoteAddress().toString().toStdString(),
                                    service_uuid.toString(QUuid::WithoutBraces).toStdString()
         ));
-
-
-        for (const auto &item: bluetooth_service_mcumgr->characteristics()) {
-            API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}" }})",
-                                       controller->remoteAddress().toString().toStdString(),
-                                       service_uuid.toString(QUuid::WithoutBraces).toStdString(),
-                                       item.uuid().toString(QUuid::WithoutBraces).toStdString()
-            ));
-        }
-
     }
     else {
         API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}" }})",
@@ -299,6 +292,7 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 //    if (nNewState == QLowEnergyService::RemoteService) {
 //        int a = 3;
 //    }
+
     if (
             //nNewState == QLowEnergyService::RemoteService ||
             nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
@@ -537,7 +531,8 @@ void smp_bluetooth::form_connect_to_device(const QBluetoothDeviceInfo &info)
     //        controller = QLowEnergyController::createCentral();
     QObject::connect(controller, SIGNAL(connected()), this, SLOT(connected()));
     QObject::connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
-    QObject::connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()));
+    // This has to be a QueuedConnection. https://stackoverflow.com/a/71052226
+    QObject::connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()), Qt::QueuedConnection);
     QObject::connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(service_discovered(QBluetoothUuid)));
     QObject::connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
     //         connect(controller, SIGNAL(connectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
