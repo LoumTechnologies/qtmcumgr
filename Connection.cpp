@@ -107,6 +107,7 @@ Connection::Connection(const QBluetoothDeviceInfo &info, QObject *parent) : QObj
 
 Connection::~Connection() {
     auto bluetooth_transport = (smp_bluetooth*)transport;
+    bluetooth_transport->disconnect(true);
     disconnect(bluetooth_transport, SIGNAL(receive_waiting(smp_message*)), processor, SLOT(message_received(smp_message*)));
 
     disconnect(smp_groups->fs_mgmt, SIGNAL(status(uint8_t,group_status,QString)), this, SLOT(status(uint8_t,group_status,QString)));
