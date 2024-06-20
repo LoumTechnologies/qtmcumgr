@@ -926,7 +926,7 @@ void smp_group_img_mgmt::receive_error(uint8_t version, uint8_t op, uint16_t gro
     {
         auto error_string = smp_error::error_lookup_string(&error);
         auto group_status = status_error_return(error);
-        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}", "groupStatus": {1}, "description": {2} }})",
+        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}", "groupStatus": {1}, "description": "{2}" }})",
                                    processor->address().toStdString(),
                                    (int)group_status,
                                    error_string.toStdString()));
