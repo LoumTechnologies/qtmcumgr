@@ -173,12 +173,12 @@ void smp_bluetooth::discovery_finished()
 //    bluetooth_window->add_debug("Service scan finished.");
     //bluetooth_service_mcumgr = controller->createServiceObject(QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")));
 
-    if (!bluetooth_service_mcumgr)
-    {
-//        bluetooth_window->add_debug("SMP service not found.");
-        controller->disconnectFromDevice();
-    }
-    else
+//    if (!bluetooth_service_mcumgr)
+//    {
+////        bluetooth_window->add_debug("SMP service not found.");
+//        controller->disconnectFromDevice();
+//    }
+//    else
     {
         //Connect MCUmgr server signals
 //        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic,QByteArray)));
@@ -202,18 +202,26 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
 
     if (service_uuid == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))
     {
-        bluetooth_service_mcumgr = controller->createServiceObject(service_uuid);
+        if (bluetooth_service_mcumgr == nullptr) {
+            bluetooth_service_mcumgr = controller->createServiceObject(service_uuid);
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
+                             this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)));
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
+                             this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)));
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
+                             SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)));
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
+                             SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
+            QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
+                             SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
 
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor,QByteArray)), this, SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor,QByteArray)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
-        QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
-
-        QTimer::singleShot(150, QCoreApplication::instance(), [this]()
-        {
-            bluetooth_service_mcumgr->discoverDetails();
-        });
+            QTimer::singleShot(150, QCoreApplication::instance(), [this]()
+            {
+                if (bluetooth_service_mcumgr != nullptr) {
+                    bluetooth_service_mcumgr->discoverDetails();
+                }
+            });
+        }
 
         API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
                                    controller->remoteAddress().toString().toStdString(),
@@ -283,8 +291,7 @@ QString smp_bluetooth::address() {
     return controller->remoteAddress().toString();
 }
 
-void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState nNewState)
-{
+void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState nNewState) {
 //    bluetooth_window->add_debug(QString("State: ").append(QString::number(nNewState)));
 
     //Service state changed
@@ -293,9 +300,58 @@ void smp_bluetooth::mcumgr_service_state_changed(QLowEnergyService::ServiceState
 //        int a = 3;
 //    }
 
-    if (
-            //nNewState == QLowEnergyService::RemoteService ||
-            nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
+    QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
+
+    QString newStateString;
+    switch (nNewState) {
+        case QLowEnergyService::RemoteService:
+            newStateString = "RemoteService";
+            break;
+        case QLowEnergyService::RemoteServiceDiscovered:
+            newStateString = "RemoteServiceDiscovered";
+            break;
+        case QLowEnergyService::InvalidService:
+            newStateString = "InvalidService";
+            break;
+        case QLowEnergyService::LocalService:
+            newStateString = "LocalService";
+            break;
+        case QLowEnergyService::RemoteServiceDiscovering:
+            newStateString = "RemoteServiceDiscovering";
+            break;
+    }
+
+    API::sendEvent(std::format(
+            R"({{ "eventType": "serviceStateChanged", "address": "{0}", "service": "{1}", "newState": "{2}" }})",
+            controller->remoteAddress().toString().toStdString(),
+            svcBLEService->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+            newStateString.toStdString()
+    ));
+
+    if (svcBLEService &&
+        svcBLEService->serviceUuid() == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84"))
+        && bluetooth_service_mcumgr == nullptr) {
+        bluetooth_service_mcumgr = svcBLEService;//controller->createServiceObject(svcBLEService);
+        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicChanged(QLowEnergyCharacteristic, QByteArray)),
+                         this, SLOT(mcumgr_service_characteristic_changed(QLowEnergyCharacteristic, QByteArray)));
+        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic, QByteArray)),
+                         this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic, QByteArray)));
+        QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor, QByteArray)), this,
+                         SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor, QByteArray)));
+        QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this,
+                         SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
+        QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this,
+                         SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
+
+        QTimer::singleShot(150, QCoreApplication::instance(), [this]()
+        {
+            if (bluetooth_service_mcumgr != nullptr) {
+                bluetooth_service_mcumgr->discoverDetails();
+            }
+        });
+    }
+
+    if (nNewState == QLowEnergyService::ServiceState::RemoteServiceDiscovered)
     {
         QLowEnergyService *svcBLEService = qobject_cast<QLowEnergyService *>(sender());
         if (svcBLEService && svcBLEService->serviceUuid() == QBluetoothUuid(QString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84")))

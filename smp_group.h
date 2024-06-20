@@ -77,6 +77,7 @@ public:
     {
         if (error_lookup != nullptr)
         {
+            auto x = error->toStdString();
             return error_lookup(rc, error);
         }
 
