@@ -62,9 +62,4 @@ void CommandProcessor::processCommand(const QString &command) {
         auto confirm = commandObject.value("confirm").toBool();
         deviceManager->setImage(address, hashString, confirm, commonParameters);
     }
-
-    if (commandType == "rediscoverCharacteristics") {
-        CommonParameters commonParameters;
-        deviceManager->rediscoverCharacteristics(address);
-    }
 }

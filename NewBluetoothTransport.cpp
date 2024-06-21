@@ -88,6 +88,7 @@ int NewBluetoothTransport::disconnect(bool force) {
     if (connection != nullptr) {
         delete connection;
     }
+    return 0;
 }
 
 QString NewBluetoothTransport::address() {

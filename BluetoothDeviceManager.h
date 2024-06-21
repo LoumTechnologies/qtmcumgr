@@ -26,15 +26,13 @@ public:
     void uploadImage(QString &address, int image, QString &fileName, bool upgrade, CommonParameters commonParameters);
     void setImage(QString &address, QString &hashString, bool confirm, CommonParameters &commonParameters);
     void reset(QString &address, bool force);
-    void rediscoverCharacteristics(QString &address);
 
 private:
     void onDeviceDiscovered(const QBluetoothDeviceInfo &info);
     void onDeviceDiscoveryFinished();
     void onDeviceDiscoveryError(QBluetoothDeviceDiscoveryAgent::Error error);
 
-    //QMap<QString, Connection*> connections;
-    QMap<QString, NewConnection*> connections;
+    QMap<QString, Connection*> connections;
     QBluetoothDeviceDiscoveryAgent discoveryAgent;
     QMap<QString, const QBluetoothDeviceInfo *> devices;
 };
