@@ -23,12 +23,14 @@ NewBluetoothTransport::NewBluetoothTransport() {
 NewBluetoothTransport::~NewBluetoothTransport() {
     if (connection != nullptr) {
         delete connection;
+        connection=nullptr;
     }
 }
 
 void NewBluetoothTransport::form_connect_to_device(const QBluetoothDeviceInfo &info) {
     if (mInfo != nullptr) {
         delete mInfo;
+        mInfo = nullptr;
     }
     mInfo = new QBluetoothDeviceInfo(info);
     connection = new BluetoothConnection(info, this);
@@ -79,6 +81,7 @@ int NewBluetoothTransport::send(smp_message *message)
 int NewBluetoothTransport::connect() {
     if (connection != nullptr) {
         delete connection;
+        connection = nullptr;
     }
     connection = new BluetoothConnection(*mInfo, this);
     return 0;
@@ -87,6 +90,7 @@ int NewBluetoothTransport::connect() {
 int NewBluetoothTransport::disconnect(bool force) {
     if (connection != nullptr) {
         delete connection;
+        connection = nullptr;
     }
     return 0;
 }
