@@ -15,6 +15,11 @@ find_package(Qt6 COMPONENTS
 add_executable(qtmcumgr
         main.cpp
 
+        IoThread.cpp
+        IoThread.h
+        IoThreadManager.cpp
+        IoThreadManager.h
+
         API.h
         crc16.cpp
         crc16.h
@@ -61,6 +66,12 @@ add_executable(qtmcumgr
         smp_bluetooth.cpp
         smp_error.cpp
         smp_group_fs_mgmt.cpp
+        BluetoothConnection.cpp
+        BluetoothConnection.h
+        BluetoothConnection.cpp
+        BluetoothConnection.h
+        NewBluetoothTransport.cpp
+        NewBluetoothTransport.h
 )
 target_link_libraries(qtmcumgr
         Qt::Core

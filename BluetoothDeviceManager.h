@@ -33,7 +33,8 @@ private:
     void onDeviceDiscoveryFinished();
     void onDeviceDiscoveryError(QBluetoothDeviceDiscoveryAgent::Error error);
 
-    QMap<QString, Connection*> connections;
+    //QMap<QString, Connection*> connections;
+    QMap<QString, NewConnection*> connections;
     QBluetoothDeviceDiscoveryAgent discoveryAgent;
     QMap<QString, const QBluetoothDeviceInfo *> devices;
 };

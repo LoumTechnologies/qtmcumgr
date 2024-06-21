@@ -26,6 +26,7 @@
 #include <QObject>
 #include "smp_transport.h"
 #include "smp_message.h"
+#include "BluetoothConnection.h"
 
 #include <qbluetoothaddress.h>
 #include <qbluetoothdevicediscoveryagent.h>
@@ -89,11 +90,7 @@ signals:
 //    void read(QByteArray *message);
 
 private:
-    QList<QBluetoothDeviceInfo> bluetooth_device_list;
-    QList<QBluetoothUuid> services;
-
-    QLowEnergyService *bluetooth_service_mcumgr = nullptr;
-    QLowEnergyCharacteristic bluetooth_characteristic_transmit;
+    BluetoothConnection *bluetoothConnection;
     uint16_t mtu;
     uint16_t mtu_max_worked;
     QByteArray sendbuffer;
@@ -102,8 +99,6 @@ private:
     QTimer discover_timer;
     int retry_count;
     bool isWaitingToDiscoverDetails;
-
-    void attemptToDiscoverCharacteristics();
 };
 
 #endif // SMP_BLUETOOTH_H

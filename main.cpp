@@ -3,6 +3,7 @@
 #include "CommandEventTcpServer.h"
 #include "BluetoothDeviceManager.h"
 #include "CommandProcessor.h"
+#include "IoThreadManager.h"
 #include <iostream>
 
 CommandEventTcpServer *tcpServer;
@@ -33,12 +34,16 @@ int main(int argc, char *argv[])
     BluetoothDeviceManager deviceManager;
     CommandEventTcpServer theTcpServer;
     CommandProcessor processor(&deviceManager);
+    IoThreadManager instance(&processor);
     tcpServer = &theTcpServer;
     QObject::connect(&theTcpServer, &CommandEventTcpServer::receiveMessageFromClient, &processor, &CommandProcessor::processCommand, Qt::ConnectionType::QueuedConnection);
     if (!theTcpServer.start()) {
         return 1;
     }
-    deviceManager.start();
+    QTimer::singleShot(0, [&instance, &deviceManager]() {
+        deviceManager.start();
+        instance.start();
+    });
 
     // Wait for the process to finish
     int result = app.exec();

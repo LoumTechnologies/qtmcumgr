@@ -18,11 +18,11 @@ public:
     Connection(const QBluetoothDeviceInfo &info, QObject *parent = nullptr);
     ~Connection();
 
-    void reset(bool force);
     void bootLoaderInfo(QString &query);
 
     smp_group_array *smp_groups;
 
+    void reset(bool force);
     void getImages(CommonParameters &parameters);
     void imageUpload(int image, QString fileName, bool upgrade, CommonParameters &parameters);
     void setImage(QByteArray *imageHash, bool confirm, CommonParameters &parameters);

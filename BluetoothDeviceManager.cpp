@@ -143,12 +143,15 @@ void BluetoothDeviceManager::connect(QString &address) {
         }
         else {
             auto info = devices[address];
-            connections[address] = new Connection(*info, this);
+            connections[address] = new NewConnection(*info, this);
         }
     }
     else {
         auto connection = connections[address];
-        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "address": "{0}" }})", address.toStdString()));
+        connections.remove(address);
+        delete connection;
+        connect(address);
+//        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "address": "{0}" }})", address.toStdString()));
     }
 }
 
