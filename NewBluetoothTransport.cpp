@@ -22,18 +22,31 @@ NewBluetoothTransport::NewBluetoothTransport() {
 
 NewBluetoothTransport::~NewBluetoothTransport() {
     if (connection != nullptr) {
+        QObject::disconnect(connection, &BluetoothConnection::characteristicChanged, this, &NewBluetoothTransport::characteristicChanged);
+        QObject::disconnect(connection, &BluetoothConnection::characteristicWritten, this, &NewBluetoothTransport::characteristicWritten);
+        QObject::disconnect(connection, &BluetoothConnection::errorOccurred, this, &NewBluetoothTransport::errorOccurred);
         delete connection;
-        connection=nullptr;
+        connection = nullptr;
     }
 }
 
 void NewBluetoothTransport::form_connect_to_device(const QBluetoothDeviceInfo &info) {
+    if (connection != nullptr) {
+        QObject::disconnect(connection, &BluetoothConnection::characteristicChanged, this, &NewBluetoothTransport::characteristicChanged);
+        QObject::disconnect(connection, &BluetoothConnection::characteristicWritten, this, &NewBluetoothTransport::characteristicWritten);
+        QObject::disconnect(connection, &BluetoothConnection::errorOccurred, this, &NewBluetoothTransport::errorOccurred);
+        delete connection;
+        connection = nullptr;
+    }
     if (mInfo != nullptr) {
         delete mInfo;
         mInfo = nullptr;
     }
     mInfo = new QBluetoothDeviceInfo(info);
     connection = new BluetoothConnection(info, this);
+    QObject::connect(connection, &BluetoothConnection::characteristicChanged, this, &NewBluetoothTransport::characteristicChanged);
+    QObject::connect(connection, &BluetoothConnection::characteristicWritten, this, &NewBluetoothTransport::characteristicWritten);
+    QObject::connect(connection, &BluetoothConnection::errorOccurred, this, &NewBluetoothTransport::errorOccurred);
 }
 
 int NewBluetoothTransport::is_connected() {
@@ -80,15 +93,24 @@ int NewBluetoothTransport::send(smp_message *message)
 
 int NewBluetoothTransport::connect() {
     if (connection != nullptr) {
+        QObject::disconnect(connection, &BluetoothConnection::characteristicChanged, this, &NewBluetoothTransport::characteristicChanged);
+        QObject::disconnect(connection, &BluetoothConnection::characteristicWritten, this, &NewBluetoothTransport::characteristicWritten);
+        QObject::disconnect(connection, &BluetoothConnection::errorOccurred, this, &NewBluetoothTransport::errorOccurred);
         delete connection;
         connection = nullptr;
     }
     connection = new BluetoothConnection(*mInfo, this);
+    QObject::connect(connection, &BluetoothConnection::characteristicChanged, this, &NewBluetoothTransport::characteristicChanged);
+    QObject::connect(connection, &BluetoothConnection::characteristicWritten, this, &NewBluetoothTransport::characteristicWritten);
+    QObject::connect(connection, &BluetoothConnection::errorOccurred, this, &NewBluetoothTransport::errorOccurred);
     return 0;
 }
 
 int NewBluetoothTransport::disconnect(bool force) {
     if (connection != nullptr) {
+        QObject::disconnect(connection, &BluetoothConnection::characteristicChanged, this, &NewBluetoothTransport::characteristicChanged);
+        QObject::disconnect(connection, &BluetoothConnection::characteristicWritten, this, &NewBluetoothTransport::characteristicWritten);
+        QObject::disconnect(connection, &BluetoothConnection::errorOccurred, this, &NewBluetoothTransport::errorOccurred);
         delete connection;
         connection = nullptr;
     }
@@ -100,4 +122,103 @@ QString NewBluetoothTransport::address() {
         return QString("");
     }
     return mInfo->address().toString();
+}
+
+void NewBluetoothTransport::characteristicWritten(const QLowEnergyCharacteristic &characteristic, const QByteArray &baData) {
+    qDebug() << baData;
+
+    if (baData.length() > mtu_max_worked)
+    {
+        mtu_max_worked = baData.length();
+    }
+
+    retry_count = 0;
+
+    if (connection == nullptr) {
+        return;
+    }
+    auto bluetooth_service_mcumgr = connection->getMcumgrService();
+    if (bluetooth_service_mcumgr == nullptr) {
+        return;
+    }
+    auto bluetooth_characteristic_transmit = connection->getTransmitCharacteristic();
+    if (!bluetooth_characteristic_transmit.isValid())
+    {
+        return;
+    }
+
+    if (sendbuffer.length() > 0)
+    {
+        sendbuffer.remove(0, baData.length());
+
+        if (sendbuffer.length() > 0)
+        {
+            bluetooth_service_mcumgr->writeCharacteristic(bluetooth_characteristic_transmit, sendbuffer.left(mtu));
+        }
+    }
+}
+
+void NewBluetoothTransport::errorOccurred(QLowEnergyService::ServiceError newError) {
+    if (newError == QLowEnergyService::CharacteristicWriteError)
+    {
+        qDebug() << "send failed with mtu " << mtu;
+
+        ++retry_count;
+
+        if (connection == nullptr) {
+            return;
+        }
+        auto bluetooth_service_mcumgr = connection->getMcumgrService();
+        if (bluetooth_service_mcumgr == nullptr) {
+            return;
+        }
+        auto bluetooth_characteristic_transmit = connection->getTransmitCharacteristic();
+        if (!bluetooth_characteristic_transmit.isValid())
+        {
+            return;
+        }
+
+        if (retry_count > 2)
+        {
+            retry_count = 0;
+
+            if (mtu >= 25)
+            {
+                if (mtu >= 100)
+                {
+                    mtu -= 32;
+                }
+                else
+                {
+                    mtu -= 16;
+                }
+
+                bluetooth_service_mcumgr->writeCharacteristic(bluetooth_characteristic_transmit, sendbuffer.left(mtu));
+            }
+            else
+            {
+                sendbuffer.clear();
+            }
+        }
+        else
+        {
+            retry_timer.start();
+        }
+    }
+}
+
+void NewBluetoothTransport::characteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &baData) {
+    received_data.append(&baData);
+
+    if (received_data.is_valid() == true)
+    {
+        emit receive_waiting(&received_data);
+        received_data.clear();
+    }
+}
+
+void NewBluetoothTransport::silenceDisconnectionMessages() {
+    if (connection != nullptr) {
+        connection->silenceDisconnectionMessages();
+    }
 }

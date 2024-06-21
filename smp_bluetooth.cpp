@@ -101,7 +101,7 @@ smp_bluetooth::~smp_bluetooth()
         QObject::disconnect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
         QObject::disconnect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()));
         QObject::disconnect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(service_discovered(QBluetoothUuid)));
-//        disconnect(controller, SIGNAL(connectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
+//        disconnect(controller, SIGNAL(deviceConnectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
         delete controller;
     }
 
@@ -129,7 +129,7 @@ void smp_bluetooth::finished()
 void smp_bluetooth::connected()
 {
 //    bluetooth_window->add_debug("Connected!");
-    API::sendEvent(std::format(R"({{ "eventType": "connected", "address": "{0}" }})", controller->remoteAddress().toString().toStdString()));
+    API::sendEvent(std::format(R"({{ "eventType": "deviceConnected", "address": "{0}" }})", controller->remoteAddress().toString().toStdString()));
     controller->discoverServices();
     device_connected = true;
     mtu = default_mtu;
@@ -191,7 +191,7 @@ void smp_bluetooth::discovery_finished()
 //        QObject::connect(bluetooth_service_mcumgr, SIGNAL(characteristicWritten(QLowEnergyCharacteristic,QByteArray)), this, SLOT(mcumgr_service_characteristic_written(QLowEnergyCharacteristic,QByteArray)));
 //        QObject::connect(bluetooth_service_mcumgr, SIGNAL(descriptorWritten(QLowEnergyDescriptor,QByteArray)), this, SLOT(ServiceDescriptorWritten(QLowEnergyDescriptor,QByteArray)));
 //        QObject::connect(bluetooth_service_mcumgr, SIGNAL(error(QLowEnergyService::ServiceError)), this, SLOT(mcumgr_service_error(QLowEnergyService::ServiceError)));
-//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(stateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
+//        QObject::connect(bluetooth_service_mcumgr, SIGNAL(deviceStateChanged(QLowEnergyService::ServiceState)), this, SLOT(mcumgr_service_state_changed(QLowEnergyService::ServiceState)));
 //
 //        //Request minimum connection interval
 //        form_min_params();
@@ -210,13 +210,13 @@ void smp_bluetooth::service_discovered(QBluetoothUuid service_uuid)
     {
         attemptToDiscoverCharacteristics();
 
-        API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "deviceServiceDiscovered", "address": "{0}", "service": "{1}", "serviceDescription": "MCUMGR" }})",
                                    controller->remoteAddress().toString().toStdString(),
                                    service_uuid.toString(QUuid::WithoutBraces).toStdString()
         ));
     }
     else {
-        API::sendEvent(std::format(R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}" }})",
+        API::sendEvent(std::format(R"({{ "eventType": "deviceServiceDiscovered", "address": "{0}", "service": "{1}" }})",
                                    controller->remoteAddress().toString().toStdString(),
                                    service_uuid.toString(QUuid::WithoutBraces).toStdString()
         ));
@@ -567,7 +567,7 @@ void smp_bluetooth::form_connect_to_device(const QBluetoothDeviceInfo &info)
     QObject::connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discovery_finished()), Qt::QueuedConnection);
     QObject::connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(service_discovered(QBluetoothUuid)), Qt::QueuedConnection);
     QObject::connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)), Qt::QueuedConnection);
-    //         connect(controller, SIGNAL(connectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
+    //         connect(controller, SIGNAL(deviceConnectionUpdated(QLowEnergyConnectionParameters)), this, SLOT(connection_updated(QLowEnergyConnectionParameters)));
 
     //     if (isRandomAddress())
     //     {

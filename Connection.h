@@ -18,6 +18,7 @@ public:
     Connection(const QBluetoothDeviceInfo &info, QObject *parent = nullptr);
     ~Connection();
 
+    void silenceDisconnectionMessages();
     void bootLoaderInfo(QString &query);
 
     smp_group_array *smp_groups;

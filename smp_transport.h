@@ -72,8 +72,8 @@ public:
     virtual QString address() = 0;
 
 signals:
-//    void connected();
-//    void disconnected();
+//    void deviceConnected();
+//    void deviceDisconnected();
 //    void error(int error_code);
 //    void send_complete();
 //    void receive_waiting();

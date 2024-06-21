@@ -31,9 +31,9 @@ smp_udp::smp_udp(QObject *parent)
     socket_is_connected = false;
 
     QObject::connect(socket, SIGNAL(readyRead()), this, SLOT(socket_readyread()));
-//    QObject::connect(socket, SIGNAL(connected()), this, SLOT(socket_connected()));
-//    QObject::connect(socket, SIGNAL(disconnected()), this, SLOT(socket_disconnected()));
-//    QObject::connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(socket_statechanged(QAbstractSocket::SocketState)));
+//    QObject::connect(socket, SIGNAL(deviceConnected()), this, SLOT(socket_connected()));
+//    QObject::connect(socket, SIGNAL(deviceDisconnected()), this, SLOT(socket_disconnected()));
+//    QObject::connect(socket, SIGNAL(deviceStateChanged(QAbstractSocket::SocketState)), this, SLOT(socket_statechanged(QAbstractSocket::SocketState)));
 //    QObject::connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(socket_error(QAbstractSocket::SocketError)));
 //    QObject::connect(socket, SIGNAL(readChannelFinished()), this, SLOT(socket_readchannelfinished()));
 
@@ -213,12 +213,12 @@ void smp_udp::socket_readyread()
 #if 0
 void smp_udp::socket_connected()
 {
-	emit connected();
+	emit deviceConnected();
 }
 
 void smp_udp::socket_disconnected()
 {
-	emit disconnected();
+	emit deviceDisconnected();
 }
 
 void smp_udp::socket_statechanged(QAbstractSocket::SocketState state)

@@ -10,20 +10,30 @@ BluetoothConnection::BluetoothConnection(const QBluetoothDeviceInfo &info, QObje
     controller = QLowEnergyController::createCentral(info);
     mcumgr_service = nullptr;
 
-    QObject::connect(controller, &QLowEnergyController::connected, this, &BluetoothConnection::connected);
-    QObject::connect(controller, &QLowEnergyController::connectionUpdated, this, &BluetoothConnection::connectionUpdated);
-    QObject::connect(controller, &QLowEnergyController::disconnected, this, &BluetoothConnection::disconnected);
-    QObject::connect(controller, &QLowEnergyController::discoveryFinished, this, &BluetoothConnection::discoveryFinished);
-    QObject::connect(controller, &QLowEnergyController::errorOccurred, this, &BluetoothConnection::errorOccurred);
-    QObject::connect(controller, &QLowEnergyController::mtuChanged, this, &BluetoothConnection::mtuChanged);
-    QObject::connect(controller, &QLowEnergyController::rssiRead, this, &BluetoothConnection::rssiRead);
-    QObject::connect(controller, &QLowEnergyController::serviceDiscovered, this, &BluetoothConnection::serviceDiscovered);
-    QObject::connect(controller, &QLowEnergyController::stateChanged, this, &BluetoothConnection::stateChanged);
+    QObject::connect(controller, &QLowEnergyController::connected, this, &BluetoothConnection::deviceConnected);
+    QObject::connect(controller, &QLowEnergyController::connectionUpdated, this,
+                     &BluetoothConnection::deviceConnectionUpdated);
+    QObject::connect(controller, &QLowEnergyController::disconnected, this, &BluetoothConnection::deviceDisconnected);
+    QObject::connect(controller, &QLowEnergyController::discoveryFinished, this,
+                     &BluetoothConnection::deviceDiscoveryFinished);
+    QObject::connect(controller, &QLowEnergyController::errorOccurred, this, &BluetoothConnection::deviceErrorOccurred);
+    QObject::connect(controller, &QLowEnergyController::mtuChanged, this, &BluetoothConnection::deviceMtuChanged);
+    QObject::connect(controller, &QLowEnergyController::rssiRead, this, &BluetoothConnection::deviceRssiRead);
+    QObject::connect(controller, &QLowEnergyController::serviceDiscovered, this,
+                     &BluetoothConnection::deviceServiceDiscovered);
+    QObject::connect(controller, &QLowEnergyController::stateChanged, this, &BluetoothConnection::deviceStateChanged);
 
     controller->connectToDevice();
+    _silenceDisconnectionMessages=false;
 }
 
 BluetoothConnection::~BluetoothConnection() {
+    if (!_silenceDisconnectionMessages) {
+        API::sendEvent(std::format(
+                R"({{ "eventType": "disconnected", "address": "{0}" }})",
+                mInfo.address().toString().toStdString()
+        ));
+    }
     controller->disconnectFromDevice();
 
     if (mcumgr_service != nullptr) {
@@ -68,7 +78,7 @@ bool BluetoothConnection::isConnected() {
 
 
 
-void BluetoothConnection::connected()
+void BluetoothConnection::deviceConnected()
 {
     API::sendEvent(std::format(
             R"({{ "eventType": "connected", "address": "{0}" }})",
@@ -78,7 +88,7 @@ void BluetoothConnection::connected()
     controller->discoverServices();
 }
 
-void BluetoothConnection::connectionUpdated(const QLowEnergyConnectionParameters &newParameters)
+void BluetoothConnection::deviceConnectionUpdated(const QLowEnergyConnectionParameters &newParameters)
 {
     API::sendEvent(std::format(
             R"({{ "eventType": "connectionUpdated", "address": "{0}", "latency": {1}, "maximumInterval": {2}, "minimumInterval": {3}, "supervisionTimeout": {4} }})",
@@ -90,17 +100,19 @@ void BluetoothConnection::connectionUpdated(const QLowEnergyConnectionParameters
     ));
 }
 
-void BluetoothConnection::disconnected() {
-    API::sendEvent(std::format(
-            R"({{ "eventType": "disconnected", "address": "{0}" }})",
-            mInfo.address().toString().toStdString()
-    ));
+void BluetoothConnection::deviceDisconnected() {
+    if (!_silenceDisconnectionMessages) {
+        API::sendEvent(std::format(
+                R"({{ "eventType": "gracefullyDisconnected", "address": "{0}" }})",
+                mInfo.address().toString().toStdString()
+        ));
+    }
 }
 
-void BluetoothConnection::discoveryFinished()
+void BluetoothConnection::deviceDiscoveryFinished()
 {
     API::sendEvent(std::format(
-            R"({{ "eventType": "discoveryFinished", "address": "{0}" }})",
+            R"({{ "eventType": "deviceDiscoveryFinished", "address": "{0}" }})",
             mInfo.address().toString().toStdString()
     ));
 
@@ -116,7 +128,7 @@ void BluetoothConnection::discoveryFinished()
     }
 }
 
-void BluetoothConnection::errorOccurred(QLowEnergyController::Error newError)
+void BluetoothConnection::deviceErrorOccurred(QLowEnergyController::Error newError)
 {
     QString errorString;
 
@@ -163,16 +175,16 @@ void BluetoothConnection::errorOccurred(QLowEnergyController::Error newError)
     ));
 }
 
-void BluetoothConnection::mtuChanged(int mtu)
+void BluetoothConnection::deviceMtuChanged(int mtu)
 {
     API::sendEvent(std::format(
-            R"({{ "eventType": "mtuChanged", "address": "{0}", "mtu": {1} }})",
+            R"({{ "eventType": "deviceMtuChanged", "address": "{0}", "mtu": {1} }})",
             mInfo.address().toString().toStdString(),
             mtu
     ));
 }
 
-void BluetoothConnection::rssiRead(qint16 rssi)
+void BluetoothConnection::deviceRssiRead(qint16 rssi)
 {
     API::sendEvent(std::format(
             R"({{ "eventType": "readRssi", "address": "{0}", "rssi": {1} }})",
@@ -181,10 +193,10 @@ void BluetoothConnection::rssiRead(qint16 rssi)
     ));
 }
 
-void BluetoothConnection::serviceDiscovered(const QBluetoothUuid &newService)
+void BluetoothConnection::deviceServiceDiscovered(const QBluetoothUuid &newService)
 {
     API::sendEvent(std::format(
-            R"({{ "eventType": "serviceDiscovered", "address": "{0}", "service": "{1}" }})",
+            R"({{ "eventType": "deviceServiceDiscovered", "address": "{0}", "service": "{1}" }})",
             mInfo.address().toString().toStdString(),
             newService.toString(QUuid::WithoutBraces).toStdString()
     ));
@@ -200,7 +212,7 @@ void BluetoothConnection::serviceDiscovered(const QBluetoothUuid &newService)
     }
 }
 
-void BluetoothConnection::stateChanged(QLowEnergyController::ControllerState state)
+void BluetoothConnection::deviceStateChanged(QLowEnergyController::ControllerState state)
 {
     QString stateString;
 
@@ -229,7 +241,7 @@ void BluetoothConnection::stateChanged(QLowEnergyController::ControllerState sta
     }
 
     API::sendEvent(std::format(
-            R"({{ "eventType": "stateChanged", "address": "{0}", "state": "{1}" }})",
+            R"({{ "eventType": "deviceStateChanged", "address": "{0}", "state": "{1}" }})",
             mInfo.address().toString().toStdString(),
             stateString.toStdString()
     ));
@@ -242,39 +254,42 @@ void BluetoothConnection::stateChanged(QLowEnergyController::ControllerState sta
 
 void BluetoothConnection::serviceCharacteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &newValue)
 {
-    API::sendEvent(std::format(R"({{ "eventType": "serviceCharacteristicChanged", "address": "{0}", "service": "{1}", "characteristic": "{2}", "name": "{3}", "value": "{4}", "newValue": "{5}", "isValid": {6} }})",
-                               mInfo.address().toString().toStdString(),
-                               mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
-                               characteristic.uuid().toString(QUuid::WithoutBraces).toStdString(),
-                               characteristic.name().toStdString(),
-                               QString::fromLatin1(characteristic.value().toHex()).toStdString(),
-                               QString::fromLatin1(newValue.toHex()).toStdString(),
-                               characteristic.isValid()
-    ));
+//    API::sendEvent(std::format(R"({{ "eventType": "serviceCharacteristicChanged", "address": "{0}", "service": "{1}", "characteristic": "{2}", "name": "{3}", "value": "{4}", "newValue": "{5}", "isValid": {6} }})",
+//                               mInfo.address().toString().toStdString(),
+//                               mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+//                               characteristic.uuid().toString(QUuid::WithoutBraces).toStdString(),
+//                               characteristic.name().toStdString(),
+//                               QString::fromLatin1(characteristic.value().toHex()).toStdString(),
+//                               QString::fromLatin1(newValue.toHex()).toStdString(),
+//                               characteristic.isValid()
+//    ));
+    emit characteristicChanged(characteristic, newValue);
 }
 void BluetoothConnection::serviceCharacteristicRead(const QLowEnergyCharacteristic &characteristic, const QByteArray &value)
 {
-    API::sendEvent(std::format(R"({{ "eventType": "serviceCharacteristicRead", "address": "{0}", "service": "{1}", "characteristic": "{2}", "name": "{3}", "mvalue": "{4}", "value": "{5}", "isValid": {6} }})",
-                               mInfo.address().toString().toStdString(),
-                               mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
-                               characteristic.uuid().toString(QUuid::WithoutBraces).toStdString(),
-                               characteristic.name().toStdString(),
-                               QString::fromLatin1(characteristic.value().toHex()).toStdString(),
-                               QString::fromLatin1(value.toHex()).toStdString(),
-                               characteristic.isValid()
-    ));
+//    API::sendEvent(std::format(R"({{ "eventType": "serviceCharacteristicRead", "address": "{0}", "service": "{1}", "characteristic": "{2}", "name": "{3}", "mvalue": "{4}", "value": "{5}", "isValid": {6} }})",
+//                               mInfo.address().toString().toStdString(),
+//                               mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+//                               characteristic.uuid().toString(QUuid::WithoutBraces).toStdString(),
+//                               characteristic.name().toStdString(),
+//                               QString::fromLatin1(characteristic.value().toHex()).toStdString(),
+//                               QString::fromLatin1(value.toHex()).toStdString(),
+//                               characteristic.isValid()
+//    ));
 }
 void BluetoothConnection::serviceCharacteristicWritten(const QLowEnergyCharacteristic &characteristic, const QByteArray &newValue)
 {
-    API::sendEvent(std::format(R"({{ "eventType": "serviceCharacteristicWritten", "address": "{0}", "service": "{1}", "characteristic": "{2}", "name": "{3}", "value": "{4}", "newValue": "{5}", "isValid": {6} }})",
-                               mInfo.address().toString().toStdString(),
-                               mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
-                               characteristic.uuid().toString(QUuid::WithoutBraces).toStdString(),
-                               characteristic.name().toStdString(),
-                               QString::fromLatin1(characteristic.value().toHex()).toStdString(),
-                               QString::fromLatin1(newValue.toHex()).toStdString(),
-                               characteristic.isValid()
-    ));
+//    API::sendEvent(std::format(R"({{ "eventType": "serviceCharacteristicWritten", "address": "{0}", "service": "{1}", "characteristic": "{2}", "name": "{3}", "value": "{4}", "newValue": "{5}", "isValid": {6} }})",
+//                               mInfo.address().toString().toStdString(),
+//                               mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
+//                               characteristic.uuid().toString(QUuid::WithoutBraces).toStdString(),
+//                               characteristic.name().toStdString(),
+//                               QString::fromLatin1(characteristic.value().toHex()).toStdString(),
+//                               QString::fromLatin1(newValue.toHex()).toStdString(),
+//                               characteristic.isValid()
+//    ));
+
+    emit characteristicWritten(characteristic, newValue);
 }
 void BluetoothConnection::serviceDescriptorRead(const QLowEnergyDescriptor &descriptor, const QByteArray &value)
 {
@@ -334,6 +349,8 @@ void BluetoothConnection::serviceErrorOccurred(QLowEnergyService::ServiceError n
                                mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
                                newErrorString.toStdString()
     ));
+
+    emit errorOccurred(newError);
 }
 void BluetoothConnection::serviceStateChanged(QLowEnergyService::ServiceState newState)
 {
@@ -367,15 +384,32 @@ void BluetoothConnection::serviceStateChanged(QLowEnergyService::ServiceState ne
         if (mcumgr_service != nullptr) {
 
             for (const auto &item: mcumgr_service->characteristics()) {
-                API::sendEvent(std::format(R"({{ "eventType": "foundCharacteristic", "address": "{0}", "characteristic": "{1}", "characteristicName": "{2}", "isValid": {3} }})",
+                API::sendEvent(std::format(R"({{ "eventType": "characteristicDiscovered", "address": "{0}", "service": "{1}", "characteristic": "{2}", "characteristicName": "{3}", "isValid": {4} }})",
                                            mInfo.address().toString().toStdString(),
+                                           mcumgr_service->serviceUuid().toString(QUuid::WithoutBraces).toStdString(),
                                            item.uuid().toString(QUuid::WithoutBraces).toStdString(),
                                            item.name().toStdString(),
                                            item.isValid()));
                 if (item.uuid() == QBluetoothUuid(QString("DA2E7828-FBCE-4E01-AE9E-261174997C48"))) {
                     transmit_characteristic = item;
+
+                    const QLowEnergyDescriptor descTXDesc = transmit_characteristic.descriptor(QBluetoothUuid::DescriptorType::ClientCharacteristicConfiguration);
+
+                    if (!descTXDesc.isValid())
+                    {
+                        API::sendEvent(std::format(R"({{ "eventType": "error", "address": "{0}", "description": "Invalid TX" }})",
+                                                   mInfo.address().toString().toStdString()));
+                    }
+                    else {
+                        //Enable Tx descriptor notifications
+                        mcumgr_service->writeDescriptor(descTXDesc, QByteArray::fromHex("0100"));
+                    }
                 }
             }
         }
     }
+}
+
+void BluetoothConnection::silenceDisconnectionMessages() {
+    _silenceDisconnectionMessages = true;
 }

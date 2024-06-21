@@ -17,8 +17,8 @@ Once the device has been discovered, you can connect to it by sending this to st
 This will result in messages like the following:
 
 ```
-{ "eventType": "connected", "address": "00:00:00:00:00:00" }
-{ "eventType": "serviceDiscovered", "address": "00:00:00:00:00:00", "service": "8d53dc1d-1db7-4cd3-868b-8a527460aa84", "serviceDescription": "MCUMGR" }
+{ "eventType": "deviceConnected", "address": "00:00:00:00:00:00" }
+{ "eventType": "deviceServiceDiscovered", "address": "00:00:00:00:00:00", "service": "8d53dc1d-1db7-4cd3-868b-8a527460aa84", "serviceDescription": "MCUMGR" }
 { "eventType": "serviceDiscoveryFinished", "address": "00:00:00:00:00:00" }
 ```
 
@@ -32,7 +32,7 @@ This results in the following output:
 
 ```
 { "eventType": "resetCompleted", "address": "00:00:00:00:00:00" }
-{ "eventType": "disconnected", "address": "00:00:00:00:00:00" }
+{ "eventType": "deviceDisconnected", "address": "00:00:00:00:00:00" }
 ```
 
 (The disconnect happens because the device was reset; normally the disconnect doesn't happen after every command.)

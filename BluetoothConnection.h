@@ -18,18 +18,19 @@ class BluetoothConnection : public QObject
 public:
     BluetoothConnection(const QBluetoothDeviceInfo &info, QObject *parent = nullptr);
     ~BluetoothConnection();
+    void silenceDisconnectionMessages();
 
 private slots:
     // Slots for the connection
-    void connected();
-    void connectionUpdated(const QLowEnergyConnectionParameters &newParameters);
-    void disconnected();
-    void discoveryFinished();
-    void errorOccurred(QLowEnergyController::Error newError);
-    void mtuChanged(int mtu);
-    void rssiRead(qint16 rssi);
-    void serviceDiscovered(const QBluetoothUuid &newService);
-    void stateChanged(QLowEnergyController::ControllerState state);
+    void deviceConnected();
+    void deviceConnectionUpdated(const QLowEnergyConnectionParameters &newParameters);
+    void deviceDisconnected();
+    void deviceDiscoveryFinished();
+    void deviceErrorOccurred(QLowEnergyController::Error newError);
+    void deviceMtuChanged(int mtu);
+    void deviceRssiRead(qint16 rssi);
+    void deviceServiceDiscovered(const QBluetoothUuid &newService);
+    void deviceStateChanged(QLowEnergyController::ControllerState state);
 
     // Slots for the mcumgr_service
     void serviceCharacteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &newValue);
@@ -39,6 +40,12 @@ private slots:
     void serviceDescriptorWritten(const QLowEnergyDescriptor &descriptor, const QByteArray &newValue);
     void serviceErrorOccurred(QLowEnergyService::ServiceError newError);
     void serviceStateChanged(QLowEnergyService::ServiceState newState);
+
+signals:
+
+    void characteristicChanged(const QLowEnergyCharacteristic &characteristic, const QByteArray &newValue);
+    void characteristicWritten(const QLowEnergyCharacteristic &characteristic, const QByteArray &newValue);
+    void errorOccurred(QLowEnergyService::ServiceError newError);
 
 public:
     QLowEnergyController *getController();
@@ -51,6 +58,8 @@ private:
     QLowEnergyController *controller;
     QLowEnergyService *mcumgr_service;
     QLowEnergyCharacteristic transmit_characteristic;
+    bool isConnecting;
+    bool _silenceDisconnectionMessages;
 };
 
 

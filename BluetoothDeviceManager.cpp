@@ -149,6 +149,7 @@ void BluetoothDeviceManager::connect(QString &address) {
     else {
         auto connection = connections[address];
         connections.remove(address);
+        connection->silenceDisconnectionMessages();
         delete connection;
         connect(address);
 //        API::sendEvent(std::format(R"({{ "eventType": "alreadyConnected", "address": "{0}" }})", address.toStdString()));
@@ -160,7 +161,7 @@ void BluetoothDeviceManager::disconnect(QString &address) {
         auto connection = connections[address];
         connections.remove(address);
         delete connection;
-        API::sendEvent(std::format(R"({{ "eventType": "disconnected", "address": "{0}" }})", address.toStdString()));
+        API::sendEvent(std::format(R"({{ "eventType": "gracefullyDisconnected", "address": "{0}" }})", address.toStdString()));
     } else {
         API::sendEvent(std::format(R"({{ "eventType": "alreadyDisconnected", "address": "{0}" }})", address.toStdString()));
     }

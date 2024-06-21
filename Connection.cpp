@@ -61,10 +61,10 @@ Connection::Connection(const QBluetoothDeviceInfo &info, QObject *parent) : QObj
     // controller = QLowEnergyController::createCentral(*info);
     // //controller->setParent(this);
     //
-    // connect(controller, SIGNAL(connected()), this, SLOT(connected()));
-    // connect(controller, SIGNAL(disconnected()), this, SLOT(disconnected()));
-    // connect(controller, SIGNAL(discoveryFinished()), this, SLOT(discoveryFinished()));
-    // connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(serviceDiscovered(QBluetoothUuid)));
+    // connect(controller, SIGNAL(connected()), this, SLOT(deviceConnected()));
+    // connect(controller, SIGNAL(disconnected()), this, SLOT(deviceDisconnected()));
+    // connect(controller, SIGNAL(discoveryFinished()), this, SLOT(deviceDiscoveryFinished()));
+    // connect(controller, SIGNAL(serviceDiscovered(QBluetoothUuid)), this, SLOT(deviceServiceDiscovered(QBluetoothUuid)));
     // connect(controller, SIGNAL(error(QLowEnergyController::Error)), this, SLOT(errorz(QLowEnergyController::Error)));
     //
     // controller->setRemoteAddressType(QLowEnergyController::RandomAddress);
@@ -791,4 +791,8 @@ void Connection::progress(uint8_t user_data, uint8_t percent)
     //     log_debug() << "fs sender";
     //     progress_FS_Complete->setValue(percent);
     // }
+}
+
+void Connection::silenceDisconnectionMessages() {
+    ((NewBluetoothTransport*)this->transport)->silenceDisconnectionMessages();
 }
