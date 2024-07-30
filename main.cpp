@@ -12,8 +12,8 @@ namespace API {
     void sendEvent(std::string str) {
         std::cout << str << std::endl;
         std::flush(std::cout);
-        std::cerr << str << std::endl;
-        std::flush(std::cerr);
+//        std::cerr << str << std::endl;
+//        std::flush(std::cerr);
         auto qstring = QString::fromStdString(str);
         qstring.append('\n');
         tcpServer->sendMessageToClient(qstring);
